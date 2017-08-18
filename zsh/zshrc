@@ -1,9 +1,11 @@
+# color
 autoload colors 
 colors
+
+# prompt
 local info="%B%F{green}%n%f%F{red}@%f%F{cyan}%m%f%b" 
 local prom="%B%(?,%F{green},%F{red})%(!, #>, $>)%f%b" 
 local dir=$'\n'"%B%F{yellow}[%~]%f%b"$'\n' 
-#local dir=$'\n'"%B%{$fg[yellow]%}[%~]%{$reset_color%}%b"$'\n' 
 PROMPT="${dir}${info}${prom}"
 
 
@@ -23,8 +25,29 @@ case "${OSTYPE}" in
 esac
 
 
+#Exports
+export RBENV_ROOT="/opt/rbenv"
+export PYENV_ROOT="/opt/pyenv"
+export PATH="$PYENV_ROOT/bin:$RBENV_ROOT/bin:$PATH"
+export PATH="/home/mizuho/.gem/ruby/2.4.0/bin:$PATH"
+
+export VISUAL="vim"
+
+# . /opt/nvm/nvm.sh
+#eval "$(rbenv init -)"
+#eval "$(pyenv init -)"
+alias get_ruby='eval "$(rbenv init -)"'
+alias get_python='eval "$(pyenv init -)"'
+
+
+# 補完
+autoload -U compinit
+compinit
+
 #################### ssh Login prompt #####################
+# Set DISPLAY ENV?
 if [ "${SSH_CLIENT}" != "" ]; then
+  echo ""
 	echo -n 'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
 	read input
 
@@ -33,13 +56,12 @@ if [ "${SSH_CLIENT}" != "" ]; then
 	fi
 fi
 
-# tmux
-if [ "${SHLVL}" = "1" ]; then
-echo  ""
-tmux ls 2>/dev/null
-if [ "$?" = "0" ]; then
-	echo -n -e  "\nwhich to attach? >>"
-	read number
-	tmux a -t ${number}
-fi
-fi
+# Tmux select
+ZSHRC="$HOME/.zshrc"
+if [ -L $ZSHRC ] ; then
+    ZSHRC_DIR=$(dirname $(readlink -f $ZSHRC)) ;
+else
+    ZSHRC_DIR=$(dirname $ZSHRC) ;
+fi ; 
+
+$ZSHRC_DIR/tmux.rb
