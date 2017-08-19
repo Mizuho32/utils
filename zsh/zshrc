@@ -25,19 +25,7 @@ case "${OSTYPE}" in
 esac
 
 
-#Exports
-export RBENV_ROOT="/opt/rbenv"
-export PYENV_ROOT="/opt/pyenv"
-export PATH="$PYENV_ROOT/bin:$RBENV_ROOT/bin:$PATH"
-export PATH="/home/mizuho/.gem/ruby/2.4.0/bin:$PATH"
-
 export VISUAL="vim"
-
-# . /opt/nvm/nvm.sh
-#eval "$(rbenv init -)"
-#eval "$(pyenv init -)"
-alias get_ruby='eval "$(rbenv init -)"'
-alias get_python='eval "$(pyenv init -)"'
 
 
 # 補完
