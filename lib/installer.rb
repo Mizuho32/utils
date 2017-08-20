@@ -14,12 +14,10 @@ def install_sym(source_name:nil, target_name:nil, dest:nil, bk_dir:nil, bk_lst:n
 
 
 	print "\nInstall #{dest} ? [y/n] >>"
-	yn = stdin.gets.chomp
+	yn = STDIN.gets.chomp
 
 	exit unless yn =~ /^y/
 
 	FileUtils.symlink("#{cur}/#{source_name}", dest)
 
 end
-
-
