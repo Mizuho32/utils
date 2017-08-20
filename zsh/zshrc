@@ -25,9 +25,6 @@ case "${OSTYPE}" in
 esac
 
 
-export VISUAL="vim"
-
-
 # 補完
 autoload -U compinit
 compinit
