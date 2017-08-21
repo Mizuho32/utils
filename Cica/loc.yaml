@@ -1,0 +1,8 @@
+:type:
+  :sym:
+    :Cica-Bold.ttf:     :".fonts/Cica-Bold.ttf"
+    :Cica-Regular.ttf:  :".fonts/Cica-Regular.ttf"
+    :CicaE-Bold.ttf:    :".fonts/CicaE-Bold.ttf"
+    :CicaE-Regular.ttf: :".fonts/CicaE-Regular.ttf"
+:before_install:
+  - "./before_install.rb"
