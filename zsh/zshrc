@@ -29,6 +29,7 @@ esac
 autoload -U compinit
 compinit
 
+<<<<<<< HEAD
 #################### ALIAS ################
 alias sudo="sudo -E"
 alias open="xdg-open"
@@ -68,6 +69,8 @@ export PATH=$PATH:$HOME/usr/local/mruby/bin
 export PATH=$PATH:$HOME/usr/local/xtensa-esp32-elf/bin
 export IDF_PATH=$HOME/usr/local/esp-idf
 
+
+export GIT_EDITOR=vim
 
 #################### ssh Login prompt #####################
 # Set DISPLAY ENV?
