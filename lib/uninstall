@@ -9,8 +9,8 @@ require_relative 'util'
 
 if (dir = ARGV.first.to_s).empty?
 
-	puts "specify dir"
-	exit(1) 
+  puts "specify dir"
+  exit(1) 
 
 end
 
@@ -24,22 +24,20 @@ i.each{ |cmd| system cmd } if i
 
 y[:type].map{|type, loc|
 
-	if type == :sym then
+  if type == :sym then
 
-		loc.map{ |source_name, target_name|
-			uninstall_sym(
-				loc:		loc,
-				bk_dir: "backups",
-				bk_lst: "backups.yaml",
-				cur:    Dir::pwd
-			) 
-		}
-	
-	else
+    uninstall_sym(
+      loc:    loc,
+      bk_dir: "backups",
+      bk_lst: "backups.yaml",
+      cur:    Dir::pwd
+    ) 
+  
+  else
 
-		raise NotImplementedError.new("type #{type}")
+    raise NotImplementedError.new("type #{type}")
 
-	end
+  end
 
 }
 
