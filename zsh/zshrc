@@ -29,7 +29,6 @@ esac
 autoload -U compinit
 compinit
 
-<<<<<<< HEAD
 #################### ALIAS ################
 alias sudo="sudo -E"
 alias open="xdg-open"
