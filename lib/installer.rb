@@ -16,8 +16,7 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
 
 				FileUtils.mkdir("#{cur}/#{bk_dir}/") unless File.exist? "#{cur}/#{bk_dir}/"
 				FileUtils.mv(dest, "#{cur}/#{bk_dir}/")
-				#File.write("#{cur}/#{bk_lst}", { target_name => dest }.to_yaml)
-				backup[target_name] = dest
+				backup[File.basename(target_name.to_s)] = dest
 
 			end
 

@@ -9,33 +9,36 @@ require_relative 'util'
 
 if (dir = ARGV.first.to_s).empty?
 
-	puts "specify dir"
-	exit(1) 
+  puts "specify dir"
+  exit(1) 
 
 end
 
 Dir::chdir(dir)
 
-YAML.load_file("loc.yaml").map{|type, loc|
+y = YAML.load_file("loc.yaml")
+i = y.delete :before_install
+f = y.delete :after_install
 
-	if type == :sym then
+i.each{ |cmd| system cmd } if i
 
-		loc.map{ |source_name, target_name|
-			install_sym(
-				#source_name:  source_name,
-				#target_name:  target_name,
-				#dest:         to_path(target_name),
-				loc:		loc,
-				bk_dir: "backups",
-				bk_lst: "backups.yaml",
-				cur:    Dir::pwd
-			) 
-		}
-	
-	else
+y[:type].map{|type, loc|
 
-		raise NotImplementedError.new("type #{type}")
+  if type == :sym then
 
-	end
+    install_sym(
+      loc:    loc,
+      bk_dir: "backups",
+      bk_lst: "backups.yaml",
+      cur:    Dir::pwd
+    ) 
+  
+  else
+
+    raise NotImplementedError.new("type #{type}")
+
+  end
 
 }
+
+f.each{ |cmd| system cmd } if f
