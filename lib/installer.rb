@@ -2,39 +2,59 @@ require 'fileutils'
 require 'pathname'
 require 'yaml'
 
-def install_sym(source_name:nil, target_name:nil, dest:nil, bk_dir:nil, bk_lst:nil, cur:nil)
+def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
 
-	if File.exist? dest then
+	File.write(
 
-		FileUtils.mkdir("#{cur}/#{bk_dir}/") unless File.exist? "#{cur}/#{bk_dir}/"
-		FileUtils.mv(dest, "#{cur}/#{bk_dir}/")
-		File.write("#{cur}/#{bk_lst}", { target_name => dest }.to_yaml)
+		"#{cur}/#{bk_lst}",
 
-	end
+		loc.inject({}){ |backup, (source_name, target_name)|
+
+			dest = to_path(target_name)
+
+			if File.exist? dest then
+
+				FileUtils.mkdir("#{cur}/#{bk_dir}/") unless File.exist? "#{cur}/#{bk_dir}/"
+				FileUtils.mv(dest, "#{cur}/#{bk_dir}/")
+				#File.write("#{cur}/#{bk_lst}", { target_name => dest }.to_yaml)
+				backup[target_name] = dest
+
+			end
 
 
-	print "\nInstall #{dest} ? [y/n] >>"
-	yn = STDIN.gets.chomp
+			print "\nInstall #{dest} ? [y/n] >>"
+			yn = STDIN.gets.chomp
 
-	exit unless yn =~ /^y/
+			exit unless yn =~ /^y/
 
-	FileUtils.symlink("#{cur}/#{source_name}", dest)
+			FileUtils.symlink("#{cur}/#{source_name}", dest)
+		
+			backup
+		}.to_yaml)
 
 end
 
 
-def uninstall_sym(dest:nil, bk_dir:nil, bk_lst:nil, cur:nil)
+def uninstall_sym(loc:knil, bk_dir:nil, bk_lst:nil, cur:nil)
 
-  print "\nUnInstall #{dest} ? [y/n] >>"
-  yn = STDIN.gets.chomp
+	#loc.inject({}){ |backup, (source_name, target_name)|
+	dests = loc.values.map{|t| to_path(t) }
+	puts "\n#{dests.join("\n")}\n"
 
-  exit unless yn =~ /^y/
+		#dest = to_path(target_name)
 
-  FileUtils.rm(dest)
+	print "\033[33mUnInstall\033[0m them? [y/n] >>"
+	yn = STDIN.gets.chomp
+
+	exit unless yn =~ /^y/
 
 
-  YAML.load_file("#{cur}/#{bk_lst}").each{ |filename, to|
-    FileUtils.mv("#{cur}/#{bk_dir}/#{filename}", to)
-  }
+	dests.each{ |dest| FileUtils.rm(dest) }
+
+	YAML.load_file("#{cur}/#{bk_lst}").each{ |filename, to|
+		FileUtils.mv("#{cur}/#{bk_dir}/#{filename}", to)
+	}
+
+	FileUtils.rm(bk_lst)
 
 end
