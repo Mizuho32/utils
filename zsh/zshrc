@@ -29,6 +29,15 @@ esac
 autoload -U compinit
 compinit
 
+export RBENV_ROOT=/opt/rbenv
+export PATH="$RBENV_ROOT/bin:$PATH"
+eval "$(rbenv init -)"
+
+
+export PYENV_ROOT=/opt/pyenv
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
 #################### ALIAS ################
 alias sudo="sudo -E"
 alias open="xdg-open"
@@ -56,7 +65,7 @@ alias get_nvm=". ~/.nvm/nvm.sh"
 
 
 ################ Command not Found ####################
-source /etc/zsh_command_not_found
+# source /etc/zsh_command_not_found
 
 # xv6
 export TOOLPREFIX="/media/Windows/Users/Mizuho_2/Ubuntu/usr/local/bin/i386-jos-elf-"
