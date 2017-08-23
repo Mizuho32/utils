@@ -38,6 +38,10 @@ export PYENV_ROOT=/opt/pyenv
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
+#nvm
+#. ~/.nvm/nvm.sh
+# alias get_nvm=". ~/.nvm/nvm.sh"
+
 #################### ALIAS ################
 alias sudo="sudo -E"
 alias open="xdg-open"
@@ -55,28 +59,9 @@ export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 export GIT_EDITOR=vim
 
-# rbenv pyenv
-eval "$(rbenv init -)"
-eval "$(pyenv init -)"
-
-#nvm
-#. ~/.nvm/nvm.sh
-alias get_nvm=". ~/.nvm/nvm.sh"
-
 
 ################ Command not Found ####################
 # source /etc/zsh_command_not_found
-
-# xv6
-export TOOLPREFIX="/media/Windows/Users/Mizuho_2/Ubuntu/usr/local/bin/i386-jos-elf-"
-
-# mruby
-export PATH=$PATH:$HOME/usr/local/mruby/bin
-
-# esp32
-export PATH=$PATH:$HOME/usr/local/xtensa-esp32-elf/bin
-export IDF_PATH=$HOME/usr/local/esp-idf
-
 
 export GIT_EDITOR=vim
 
