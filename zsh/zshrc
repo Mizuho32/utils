@@ -29,44 +29,27 @@ esac
 autoload -U compinit
 compinit
 
-#################### ALIAS ################
-alias sudo="sudo -E"
+########################### alias
+alias dartium="dartium --allow-file-access-from-files"
+alias google-chrome="google-chrome --allow-file-access-from-files"
 alias open="xdg-open"
-alias here="./"
-alias gcc="gcc -Wall"
 alias sl="sl -e"
+alias LS="sl"
 
-########################### EXPORTS ##################
-export PATH=$PATH:~/bin:~/.local/bin
-export PATH="$HOME/.rbenv/bin:$PATH:$HOME/usr/local/redpen/bin"
-export RUBYLIB="$RUBYLIB:$HOME/lib/ruby"
-export JAVA_HOME=/usr/lib/jvm/java-8-oracle
-export RBENV_ROOT="$HOME/.rbenv"
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-export GIT_EDITOR=vim
-
-# rbenv pyenv
-eval "$(rbenv init -)"
-eval "$(pyenv init -)"
-
-#nvm
-#. ~/.nvm/nvm.sh
-alias get_nvm=". ~/.nvm/nvm.sh"
-
-
-################ Command not Found ####################
-source /etc/zsh_command_not_found
-
-# xv6
-export TOOLPREFIX="/media/Windows/Users/Mizuho_2/Ubuntu/usr/local/bin/i386-jos-elf-"
-
-# mruby
-export PATH=$PATH:$HOME/usr/local/mruby/bin
-
-# esp32
-export PATH=$PATH:$HOME/usr/local/xtensa-esp32-elf/bin
-export IDF_PATH=$HOME/usr/local/esp-idf
+########################### exports
+#export HAXE_STD_PATH="$HOME/haxe/std:." # the ':.' part is important
+#export HAXE_HOME="$HOME/haxe"
+#export PATH="$HAXE_LIBRARY_PATH:$HAXE_HOME:$PATH"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"
+export PATH="$HOME/.nvm/versions/node/v0.12.0/bin:$HOME/.nvm:/usr/local/cuda/bin:$HOME/.rbenv/bin:$HOME/bin:$PATH"
+export PI="192.168.1.28"
+export PI2="192.168.1.33"
+export BBB="192.168.1.23"
+export LC_ALL=ja_JP.UTF-8
+export LANG=ja_JP.UTF-8
+export PATH=${PATH}:${HOME}/Android/Sdk/tools:${HOME}/Android/Sdk/platform-tools
+export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
+export PATH="$PATH:$HOME/sources/esp/xtensa-esp32-elf/bin"
 
 
 export GIT_EDITOR=vim
