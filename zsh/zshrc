@@ -51,6 +51,8 @@ export PATH=${PATH}:${HOME}/Android/Sdk/tools:${HOME}/Android/Sdk/platform-tools
 export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
 export PATH="$PATH:$HOME/sources/esp/xtensa-esp32-elf/bin"
 
+# rbenv
+eval "$(rbenv init -)"
 
 export GIT_EDITOR=vim
 
