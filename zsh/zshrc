@@ -50,6 +50,10 @@ export GIT_EDITOR=vim
 #eval "$(rbenv init -)"
 #eval "$(pyenv init -)"
 
+# cuda
+export PATH="/usr/local/cuda-9.0/bin:$PATH"
+export LD_LIBRARY_PATH="/usr/local/cuda-9.0/lib64:$LD_LIBRARY_PATH"
+
 #nvm
 #. ~/.nvm/nvm.sh
 alias get_nvm=". ~/.nvm/nvm.sh"
