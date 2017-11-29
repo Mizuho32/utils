@@ -1,0 +1,5 @@
+:type:
+  :sym:
+    :caps2ctrl.desktop:     :".config/autostart/caps2ctrl.desktop"
+:before_install:
+  - "./before_install.rb"
