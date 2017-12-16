@@ -46,6 +46,7 @@ alias get_python='eval "$(pyenv init -)"'
 
 ################ Command not Found ####################
 # source /etc/zsh_command_not_found
+source /usr/share/doc/find-the-command/ftc.zsh
 
 export GIT_EDITOR=vim
 
