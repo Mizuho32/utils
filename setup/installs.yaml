@@ -1,0 +1,13 @@
+:common:
+  - vim
+  - git
+  - tmux
+  - tig
+  - docky
+  - terminator
+  - gnome-system-monitor
+  - git-credential-gnomekeyring
+:ubuntu:
+  - &be build-essential
+:debian:
+  - *be
