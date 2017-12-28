@@ -9,5 +9,7 @@
   - git-credential-gnomekeyring
 :ubuntu:
   - &be build-essential
+  - vivaldi-repo
+  - vivaldi-stable
 :debian:
   - *be
