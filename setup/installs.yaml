@@ -1,0 +1,15 @@
+:common:
+  - vim
+  - git
+  - tmux
+  - tig
+  - docky
+  - terminator
+  - gnome-system-monitor
+  - git-credential-gnomekeyring
+:ubuntu:
+  - &be build-essential
+  - vivaldi-repo
+  - vivaldi-stable
+:debian:
+  - *be
