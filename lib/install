@@ -22,7 +22,7 @@ f = y.delete :after_install
 
 i.each{ |cmd| system cmd } if i
 
-y[:type].map{|type, loc|
+y[:type]&.map{|type, loc|
 
   if type == :sym then
 
