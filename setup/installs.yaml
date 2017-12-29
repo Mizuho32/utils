@@ -7,6 +7,7 @@
   - terminator
   - gnome-system-monitor
   - git-credential-gnomekeyring
+  - git-branch-status
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
