@@ -1,2 +1,5 @@
+:type:
+  :sym:
+    :"gbs/git-branch-status": "bin/git-branch-status"
 :before_install:
  - "./setup.rb"
