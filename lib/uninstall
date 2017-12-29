@@ -40,5 +40,8 @@ y[:type].map{|type, loc|
   end
 
 }
+# all? check TODO
 
 f.each{ |cmd| system cmd } if f
+
+`rm installed`
