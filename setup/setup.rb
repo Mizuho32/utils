@@ -6,8 +6,16 @@ require 'open3'
 
 installs = YAML.load_file "installs.yaml"
 
-print "Enter your install cmd (e.g. apt-get install >> "
-INSTALL = gets.chomp
+cand = [%w[apt install], %w[apt-get install], %w[yum install]]
+
+tmp = cand.select{|cmd| !`which #{cmd.first}`.empty?}.first
+
+print %Q{"#{cmd=tmp.join(" ")}" is your install cmd? or Enter your install cmd (e.g. apt-get install) >> }
+INSTALL = if !(line=gets.strip).empty? and line =~ /^n(?:o)/i then
+            line
+          else
+            cmd
+          end
 
 def sys_install(name)
   existance = Open3.capture3 "which #{name}"
@@ -50,8 +58,9 @@ puts <<-"LIST"
     .map{|el, i| "  #{i} #{el}" }
     .join("\n")
   }
+  #{installs.keys.size} cancel
 LIST
-print "Enter number >> "
+print "\nDistribution dependent\nEnter number >> "
 distri = dists[gets.chomp.to_i]
 unless distri.nil?  then
    dists = installs[distri].map{|name|
