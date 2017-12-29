@@ -12,7 +12,7 @@ if (dir = ARGV.first.to_s).empty?
   puts "specify dir"
   exit(1) 
 
-elsif File.exist? "installed"
+elsif File.exist? "#{dir}/installed"
 
   puts "Already installed"
   exit(2)
