@@ -7,6 +7,7 @@ set autoindent
 set smartindent
 set shiftwidth=2
 set tabstop=2
+set backspace=indent,eol,start
 
 source $VIMRUNTIME/macros/matchit.vim
 "https://stackoverflow.com/questions/7281459/matchit-not-working
