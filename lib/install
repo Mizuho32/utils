@@ -12,6 +12,11 @@ if (dir = ARGV.first.to_s).empty?
   puts "specify dir"
   exit(1) 
 
+elsif File.exist? "#{dir}/installed"
+
+  puts "Already installed"
+  exit(2)
+
 end
 
 Dir::chdir(dir)
@@ -22,7 +27,7 @@ f = y.delete :after_install
 
 i.each{ |cmd| system cmd } if i
 
-y[:type].map{|type, loc|
+r = y[:type]&.map{|type, loc|
 
   if type == :sym then
 
@@ -40,5 +45,9 @@ y[:type].map{|type, loc|
   end
 
 }
+
+if r.all? then
+  `touch installed`
+end
 
 f.each{ |cmd| system cmd } if f
