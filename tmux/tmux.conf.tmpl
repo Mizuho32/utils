@@ -10,7 +10,7 @@ set -sg escape-time 0
 ## Clipboard
 
 # copy to clipboard
-bind-key -t vi-copy Enter copy-pipe "cat | xsel -i --clipboard"
+<%= d[:clipboard] %>
 
 
 ## Keybind
@@ -18,8 +18,9 @@ bind-key -t vi-copy Enter copy-pipe "cat | xsel -i --clipboard"
 # vim key bind in copy mode
 set-window-option -g mode-keys vi
 
+# Begin selection in copy mode.
 # https://superuser.com/questions/395158/tmux-copy-mode-select-text-block
-bind-key -t vi-copy 'C-v' rectangle-toggle # Begin selection in copy mode.
+<%= d[:block_selection] %>
 
 # continue current directory
 bind c new-window -c "#{pane_current_path}"
