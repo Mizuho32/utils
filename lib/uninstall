@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+# coding: utf-8
+
+require 'yaml'
+
+require_relative 'installer'
+require_relative 'util'
+
+
+if (dir = ARGV.first.to_s).empty?
+
+  puts "specify dir"
+  exit(1) 
+
+end
+
+Dir::chdir(dir)
+
+y = YAML.load_file("loc.yaml")
+i = y.delete :before_uninstall
+f = y.delete :after_uninstall
+
+i.each{ |cmd| system cmd } if i
+
+y[:type].map{|type, loc|
+
+  if type == :sym then
+
+    uninstall_sym(
+      loc:    loc,
+      bk_dir: "backups",
+      bk_lst: "backups.yaml",
+      cur:    Dir::pwd
+    ) 
+  
+  else
+
+    raise NotImplementedError.new("type #{type}")
+
+  end
+
+}
+# all? check TODO
+
+f.each{ |cmd| system cmd } if f
+
+`rm installed`

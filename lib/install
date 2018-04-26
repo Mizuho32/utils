@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# coding: utf-8
+
+require 'yaml'
+
+require_relative 'installer'
+require_relative 'util'
+
+
+if (dir = ARGV.first.to_s).empty?
+
+  puts "specify dir"
+  exit(1) 
+
+elsif File.exist? "#{dir}/installed"
+
+  puts "Already installed"
+  exit(2)
+
+end
+
+Dir::chdir(dir)
+
+y = YAML.load_file("loc.yaml")
+i = y.delete :before_install
+f = y.delete :after_install
+
+i.each{ |cmd| system cmd } if i
+
+r = y[:type].map{|type, loc|
+
+  if type == :sym then
+
+    install_sym(
+      loc:    loc,
+      bk_dir: "backups",
+      bk_lst: "backups.yaml",
+      cur:    Dir::pwd
+    ) 
+  
+  else
+
+    raise NotImplementedError.new("type #{type}")
+
+  end
+
+} unless y[:type].nil?
+
+if r.all? then
+  `touch installed`
+end
+
+f.each{ |cmd| system cmd } if f
