@@ -27,7 +27,7 @@ f = y.delete :after_install
 
 i.each{ |cmd| system cmd } if i
 
-r = y[:type]&.map{|type, loc|
+r = y[:type].map{|type, loc|
 
   if type == :sym then
 
@@ -44,7 +44,7 @@ r = y[:type]&.map{|type, loc|
 
   end
 
-}
+} unless y[:type].nil?
 
 if r.all? then
   `touch installed`
