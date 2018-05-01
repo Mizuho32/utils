@@ -1,0 +1,12 @@
+#!/bin/bash
+
+grep vivaldi /etc/apt/sources.list
+
+if [ "$?" != "0" ]
+then
+
+  wget http://repo.vivaldi.com/stable/linux_signing_key.pub -O - | sudo apt-key add - && \
+  echo "deb http://repo.vivaldi.com/stable/deb/ stable main" | sudo tee -a  /etc/apt/sources.list && \
+  sudo apt update
+
+fi

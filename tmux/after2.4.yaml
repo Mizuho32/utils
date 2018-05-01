@@ -1,0 +1,4 @@
+:clipboard: >
+  bind-key -T copy-mode-vi Enter send -X copy-pipe-and-cancel "cat | xsel -i --clipboard"
+:block_selection: >
+  bind-key -T copy-mode-vi 'C-v' send -X rectangle-toggle

@@ -1,3 +1,10 @@
+## keybind
+set -g prefix C-<%= key %>
+unbind-key C-b
+bind-key C-<%= key %> send-prefix
+
+## shell
+set-option -g default-shell <%= `which #{shell}`.strip %>
 
 ## General
 
@@ -10,8 +17,7 @@ set -sg escape-time 0
 ## Clipboard
 
 # copy to clipboard
-bind-key -t vi-copy Enter copy-pipe "cat | xsel -i --clipboard"
-
+<%= d[:clipboard] %>
 
 
 ## Keybind
@@ -21,8 +27,7 @@ set-window-option -g mode-keys vi
 
 # Begin selection in copy mode.
 # https://superuser.com/questions/395158/tmux-copy-mode-select-text-block
-bind-key -t vi-copy 'C-v' rectangle-toggle
-
+<%= d[:block_selection] %>
 
 # continue current directory
 bind c new-window -c "#{pane_current_path}"

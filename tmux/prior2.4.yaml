@@ -1,0 +1,4 @@
+:clipboard: >
+  bind-key -t vi-copy Enter copy-pipe "cat | xsel -i --clipboard"
+:block_selection: >
+  bind-key -t vi-copy 'C-v' rectangle-toggle
