@@ -8,9 +8,11 @@
   - gnome-system-monitor
   - git-credential-gnomekeyring
   - git-branch-status
+  - htop
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
   - vivaldi-stable
 :debian:
   - *be
+  - less
