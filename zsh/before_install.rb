@@ -12,7 +12,7 @@ WARN
 end
 
 vim = "$HOME"
-vimruntime = `locate vim`.split("\n").select{|line| line =~ /vim\d+$/}.first
+vimruntime = `locate vim`.split("\n").select{|line| line =~ /^(?!.*snap).*vim\d+$/}.first
 
 if vimruntime.nil? or vimruntime.empty? then
   $stderr.puts "$VIMRUNTIME is empty"
