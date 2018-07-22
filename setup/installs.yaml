@@ -8,9 +8,12 @@
   - gnome-system-monitor
   - git-credential-gnomekeyring
   - git-branch-status
+  - htop
+  - fish
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
   - vivaldi-stable
 :debian:
   - *be
+  - less
