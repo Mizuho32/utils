@@ -3,6 +3,8 @@
 require 'yaml'
 require 'erb'
 
+require_relative '../lib/util'
+
 unless File.exist?(`which vim`.chomp) then
   $stderr.puts <<-"WARN"
 Vim not installed!!!!
@@ -12,7 +14,11 @@ WARN
 end
 
 vim = "$HOME"
-vimruntime = `locate vim`.split("\n").select{|line| line =~ /vim\d+$/}.first
+vimruntime = safe_run_cmd("locate vim") {|ex|
+  puts "#{ex.message}",""
+  print "Where is vim runtime dir? >>"
+  STDIN.gets.chomp
+}.split("\n").select{|line| line =~ /vim\d+$/}.first
 rcfile_path = Pathname(__FILE__).expand_path.dirname
 
 if vimruntime.nil? or vimruntime.empty? then
