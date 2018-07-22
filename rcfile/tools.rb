@@ -4,7 +4,7 @@ require 'pathname'
 
 
 def export(s)
-  return "" if s =~ /\s+/ or s.empty?
+  return "" if s =~ /^\s+$/ or s.empty?
 
   case @type
   when :fish then

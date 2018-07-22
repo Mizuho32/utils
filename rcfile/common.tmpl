@@ -2,6 +2,9 @@
 # PATH
 <%=
 export <<-"PATH"
+$HOME/bin
+$HOME/.rbenv/bin
+$HOME/.pyenv/bin
 PATH
 %>
 
@@ -9,6 +12,12 @@ PATH
 export GIT_EDITOR=vim
 export VIM=<%= vim %>
 export VIMRUNTIME=<%= vimruntime %>
+export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
+
+# alias
+alias open="xdg-open"
+alias sl="sl -e"
+alias LS="sl"
 
 #################### ssh Login prompt #####################
 # Set DISPLAY ENV?
