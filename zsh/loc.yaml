@@ -1,5 +1,0 @@
-:type:
-  :sym:
-    :zshrc: :".zshrc"
-:before_install:
-- "./before_install.rb"
