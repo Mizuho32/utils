@@ -78,7 +78,7 @@ function fish_prompt
     
     # Check if acpi exists
     if not set -q __fish_nim_prompt_has_acpi
-    	if type acpi > /dev/null
+    	if type acpi > /dev/null ^ /dev/null
     		set -g __fish_nim_prompt_has_acpi ''
     	else
     		set -g __fish_nim_prompt_has_acpi '' # empty string
