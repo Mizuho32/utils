@@ -11,5 +11,7 @@ set backspace=indent,eol,start
 
 source $VIMRUNTIME/macros/matchit.vim
 "https://stackoverflow.com/questions/7281459/matchit-not-working
+execute pathogen#infect()
 filetype plugin on
 filetype indent on
+
