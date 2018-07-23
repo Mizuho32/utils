@@ -9,6 +9,7 @@
   - git-credential-gnomekeyring
   - git-branch-status
   - htop
+  - fish
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
