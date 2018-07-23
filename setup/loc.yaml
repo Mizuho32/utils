@@ -1,6 +1,7 @@
 :type:
   :sym:
-    :"gbs/git-branch-status": "bin/git-branch-status"
+    :"custom/gbs/git-branch-status": "bin/git-branch-status"
     :"custom/tig-colors-neonwolf-256.tigrc": ".tigrc"
+    :"custom/libsec/git-credential-libsecret":  "bin/git-credential-libsecret"
 :before_install:
  - "./setup.rb"

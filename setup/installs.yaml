@@ -8,7 +8,7 @@
   - docky
   - terminator
   - gnome-system-monitor
-  - git-credential-gnomekeyring
+  - libsecret
   - git-branch-status
   - htop
 :ubuntu:
