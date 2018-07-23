@@ -1,15 +1,16 @@
 :common:
-  - vim
+  - fish
   - git
+  - vim
   - tmux
   - tig
+  - tig-colors-neonwolf
   - docky
   - terminator
   - gnome-system-monitor
   - git-credential-gnomekeyring
   - git-branch-status
   - htop
-  - fish
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
