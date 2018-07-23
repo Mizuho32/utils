@@ -1,3 +1,10 @@
+## keybind
+set -g prefix C-<%= key %>
+unbind-key C-b
+bind-key C-<%= key %> send-prefix
+
+## shell
+set-option -g default-shell <%= `which #{shell}`.strip %>
 
 ## General
 

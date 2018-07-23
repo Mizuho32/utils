@@ -2,4 +2,4 @@
   :sym:
     :tmux.conf: :".tmux.conf"
 :before_install:
-  - "./before_install.rb"
+- "./before_install.rb"
