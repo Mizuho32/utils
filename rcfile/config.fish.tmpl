@@ -1,4 +1,14 @@
+set -x fish_user_path $HOME/usr/local/julia-d386e40c17/bin $fish_user_path
 
 <%= custom <<-"CUSTOM"
+
+# rbenv
+rbenv init - | source
+
+# pyenv
+pyenv init - | source
+pyenv virtualenv-init - | source
+
+
 CUSTOM
 %>
