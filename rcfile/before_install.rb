@@ -31,6 +31,7 @@ end
   zsh:  'zshrc',
   fish: 'config.fish'
 }.each{|sh, bname|
-  common = common(sh, binding)
+  @type = sh
+  @b    = binding
   File.write(bname, ERB.new(File.read("#{bname}.tmpl")).result(binding))
 }
