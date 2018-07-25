@@ -1,5 +1,5 @@
 
-# PATH
+# PATH 
 <%=
 export <<-"PATH"
 $HOME/bin
@@ -13,11 +13,15 @@ export GIT_EDITOR=vim
 export VIM=<%= vim %>
 export VIMRUNTIME=<%= vimruntime %>
 export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
+## for pyenv
+export CONFIGURE_OPTS="--enable-shared" 
 
 # alias
 alias open="xdg-open"
 alias sl="sl -e"
 alias LS="sl"
+
+<%= cstm %>
 
 #################### ssh Login prompt #####################
 # Set DISPLAY ENV?
