@@ -4,5 +4,8 @@
     :config.fish: :".config/fish/config.fish"
     :fish_prompt.fish: :".config/fish/functions/fish_prompt.fish"
     :"fish/fish_greeting.fish": :".config/fish/functions/fish_greeting.fish"
+    :"fish/git.fish": :".config/fish/completions/git.fish"
+    :"fish/rbenv.fish": :".config/fish/completions/rbenv.fish"
+    :"fish/ruby.fish": :".config/fish/completions/ruby.fish"
 :before_install:
 - "./before_install.rb"
