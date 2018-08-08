@@ -12,7 +12,7 @@ def update_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
     end
 
     target_path = to_path(target_name)
-    unless File.exist? target_path then
+    unless File.symlink? target_path then
       STDERR.puts "#{target_path} doesn't exist!!"
       print "update? >>"
       if STDIN.gets.chomp =~ /^y/ then
