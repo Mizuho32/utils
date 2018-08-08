@@ -38,7 +38,7 @@ def update_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
       STDERR.puts "link path:\n#{target_path} -> #{link}\nand source in loc.yaml:\n#{source_path} does not match!"
       print "update? >>"
       if STDIN.gets.chomp =~ /^y/ then
-        FileUtils.rm(target_path)
+        FileUtils.rm(target_path) if symlink?(target_path)
         FileUtils.symlink(source_path, target_path)
       end
 
