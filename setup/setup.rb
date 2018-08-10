@@ -21,11 +21,12 @@ def sys_install(name)
   existance = Open3.capture3 "which #{name}"
   return existance if existance.last.exitstatus.zero?
 
-  if File.exist? name then
-    cmd = "./#{name}"
+  if File.exist? "./custom/#{name}" then
+    cmd = "./custom/#{name}"
   else
     cmd = %Q|sudo #{INSTALL} "#{name}"| 
   end
+  puts "in #{ENV["PWD"]}, exec #{cmd}"
   r = Open3.capture3 cmd
   puts r[0..1].join("\n")
   r
