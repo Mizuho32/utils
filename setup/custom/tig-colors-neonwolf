@@ -1,0 +1,11 @@
+#!/usr/bin/env fish
+
+echo "HELLO"
+mkdir -p ~/.config/tig
+mkdir custom
+
+if not [ -e "custom/tig-colors-neonwolf-256.tigrc" ]
+  wget "https://raw.githubusercontent.com/h3xx/tig-colors-neonwolf/master/tig-colors-neonwolf-256.tigrc" -O "custom/tig-colors-neonwolf-256.tigrc"
+end
+
+#echo 'source ~/.config/tig/tig-colors-neonwolf-256.tigrc' >> ~/.config/tig/config

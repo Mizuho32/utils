@@ -8,7 +8,7 @@ installs = YAML.load_file "installs.yaml"
 
 cand = [%w[apt install], %w[apt-get install], %w[yum install]]
 
-tmp = cand.select{|cmd| !`which #{cmd.first}`.empty?}.first
+tmp = cand.select{|cmd| !`which #{cmd.first}`.empty?}.first || %w[none]
 
 print %Q{"#{cmd=tmp.join(" ")}" is your install cmd? or Enter your install cmd (e.g. apt-get install) >> }
 INSTALL = if !(line=gets.strip).empty? and line =~ /^n(?:o)/i then
@@ -21,11 +21,12 @@ def sys_install(name)
   existance = Open3.capture3 "which #{name}"
   return existance if existance.last.exitstatus.zero?
 
-  if File.exist? name then
-    cmd = "./#{name}"
+  if File.exist? "./custom/#{name}" then
+    cmd = "./custom/#{name}"
   else
     cmd = %Q|sudo #{INSTALL} "#{name}"| 
   end
+  puts "in #{ENV["PWD"]}, exec #{cmd}"
   r = Open3.capture3 cmd
   puts r[0..1].join("\n")
   r

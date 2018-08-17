@@ -23,12 +23,13 @@ def to_fish(rc)
     .gsub(/;(?:\s)*then$/,"")
     .gsub(/((?:\s|\n)+)fi$/, '\1end')
 end 
+
 def to_zsh(rc)
   rc
 end
 
-def common(type, b)
-  @type   = type
-  common  = ERB.new(File.read("common.tmpl")).result(b)
-  final   = send(%{to_#{type}}, *[common])
+def custom(cstm)
+  @b.local_variable_set(:cstm, cstm.strip)
+  common  = ERB.new(File.read("common.tmpl")).result(@b)
+  final   = send(%{to_#{@type}}, *[common])
 end
