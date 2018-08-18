@@ -1,0 +1,17 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=qdbus org.kde.ksmserver /KSMServer logout 1 3 3
+Icon=system-shutdown
+StartupNotify=false
+Terminal=false
+Categories=System;
+#OnlyShowIn=XFCE;
+Name=Logout
+Name[en_AU]=logout
+Name[en_GB]=logout
+Name[ja]=ログアウト
+Comment=Logout from system
+Comment[en_AU]=Logout from system
+Comment[en_GB]=Logout from system
+Comment[ja]=システムからログアウト
