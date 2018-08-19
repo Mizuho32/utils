@@ -1,12 +1,12 @@
+#!/usr/bin/env xdg-open
 [Desktop Entry]
 Version=1.0
 Type=Application
 Exec=qdbus org.kde.ksmserver /KSMServer logout 1 3 3
-Icon=system-shutdown
+Icon=/usr/share/icons/breeze-dark/actions/32/system-shutdown.svg
 StartupNotify=false
 Terminal=false
 Categories=System;
-#OnlyShowIn=XFCE;
 Name=Logout
 Name[en_AU]=logout
 Name[en_GB]=logout
