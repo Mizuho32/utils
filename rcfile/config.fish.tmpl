@@ -1,4 +1,3 @@
-set -x fish_user_path $HOME/usr/local/julia-d386e40c17/bin $fish_user_path
 
 # pink
 set fish_color_autosuggestion ffddf1
@@ -43,13 +42,12 @@ set fish_pager_color_progress white --background=cyan
 
 <%= custom <<-"CUSTOM"
 
-# rbenv
-rbenv init - | source
+# asdf
+source ~/.asdf/asdf.fish
 
 # pyenv
-pyenv init - | source
-pyenv virtualenv-init - | source
-
+# pyenv init - | source
+# pyenv virtualenv-init - | source
 
 CUSTOM
 %>
