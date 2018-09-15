@@ -6,7 +6,7 @@ require 'open3'
 include Open3
 
 
-exit unless ENV["SHLVL"] == ?1
+exit unless ENV["TMUX"].nil?
 
 
 tmux_ls = capture3("tmux ls")
