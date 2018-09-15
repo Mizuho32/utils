@@ -1,12 +1,14 @@
 :common:
-  - vim
+  - fish
   - git
+  - vim
   - tmux
   - tig
+  - tig-colors-neonwolf
   - docky
   - terminator
   - gnome-system-monitor
-  - git-credential-gnomekeyring
+  - libsecret
   - git-branch-status
   - htop
 :ubuntu:

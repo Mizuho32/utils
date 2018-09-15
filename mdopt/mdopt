@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd "$(dirname "$(realpath "$0")")"
+terminator -e "ruby mdopt_ $@"
+docky&

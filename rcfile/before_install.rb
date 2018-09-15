@@ -4,6 +4,7 @@ require 'yaml'
 require 'erb'
 
 require_relative '../lib/util'
+require_relative 'tools'
 
 unless File.exist?(`which vim`.chomp) then
   $stderr.puts <<-"WARN"
@@ -14,15 +15,23 @@ WARN
 end
 
 vim = "$HOME"
-#vimruntime = `locate vim`.split("\n").select{|line| line =~ /vim\d+$/}.first
 vimruntime = safe_run_cmd("locate vim") {|ex|
   puts "#{ex.message}",""
   print "Where is vim runtime dir? >>"
   STDIN.gets.chomp
-}.split("\n").select{|line| line =~ /vim\d+$/}.first
+}.split("\n").select{|line| line =~ /^(?!.*snap).*vim\d+$/}.first
+rcfile_path = Pathname(__FILE__).expand_path.dirname
+
 
 if vimruntime.nil? or vimruntime.empty? then
   $stderr.puts "$VIMRUNTIME is empty"
 end
 
-File.write("zshrc", ERB.new(File.read("zshrc.tmpl")).result(binding))
+{
+  zsh:  'zshrc',
+  fish: 'config.fish'
+}.each{|sh, bname|
+  @type = sh
+  @b    = binding
+  File.write(bname, ERB.new(File.read("#{bname}.tmpl")).result(binding))
+}

@@ -1,6 +1,7 @@
 :type:
   :sym:
     :zshrc: :".zshrc"
+    :pryrc: :".pryrc"
     :config.fish: :".config/fish/config.fish"
     :fish_prompt.fish: :".config/fish/functions/fish_prompt.fish"
     :"fish/fish_greeting.fish": :".config/fish/functions/fish_greeting.fish"

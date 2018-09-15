@@ -29,10 +29,6 @@ esac
 autoload -U compinit
 compinit
 
-# exports
-export GIT_EDITOR=vim
-export VIM=<%= vim %>
-export VIMRUNTIME=<%= vimruntime %>
 
 # History
 HISTFILE=~/.zsh_history
@@ -41,24 +37,6 @@ SAVEHIST=2000
 setopt hist_ignore_dups     # ignore duplication command history list
 setopt share_history        # share command history data
 
-#################### ssh Login prompt #####################
-# Set DISPLAY ENV?
-if [ "${SSH_CLIENT}" != "" ]; then
-  echo ""
-	echo -n 'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
-	read input
-
-	if [ "${input}" != "n" -a "${input}" != "" ]; then
-			export DISPLAY="localhost:${input}.0"
-	fi
-fi
-
-# Tmux select
-ZSHRC="$HOME/.zshrc"
-if [ -L $ZSHRC ] ; then
-    ZSHRC_DIR=$(dirname $(readlink -f $ZSHRC)) ;
-else
-    ZSHRC_DIR=$(dirname $ZSHRC) ;
-fi ; 
-
-$ZSHRC_DIR/tmux.rb
+<%= custom <<-"CUSTOM"
+CUSTOM
+%>
