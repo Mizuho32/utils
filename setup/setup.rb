@@ -24,7 +24,7 @@ def sys_install(name)
   if File.exist? "./custom/#{name}" then
     cmd = "./custom/#{name}"
   else
-    cmd = %Q|sudo #{INSTALL} "#{name}"| 
+    cmd = %Q|#{INSTALL} "#{name}"| 
   end
   puts "in #{ENV["PWD"]}, exec #{cmd}"
   system cmd
