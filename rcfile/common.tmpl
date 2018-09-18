@@ -66,6 +66,8 @@ fi
     if [ "$name" = "$session" ]; then
       if ! [ -z "$key" ]; then
         tmux set -t "${session}" prefix C-"${key}"
+      else
+        tmux set -t "${session}" prefix C-<%= key %>
       fi
       tmux a -t "${session}"
     fi
@@ -74,5 +76,7 @@ fi
   tmux new -d -s "${session}"
   if ! [ -z "$key" ]; then
     tmux set -t "${session}" prefix C-"${key}"
+  else
+    tmux set -t "${session}" prefix C-<%= key %>
   fi
   tmux a -t "${session}"
