@@ -5,10 +5,10 @@
   - tmux
   - tig
   - tig-colors-neonwolf
-  - docky
-  - terminator
-  - gnome-system-monitor
-  - libsecret
+# - docky
+# - terminator
+# - gnome-system-monitor
+# - libsecret
   - git-branch-status
   - htop
 :ubuntu:
@@ -18,3 +18,5 @@
 :debian:
   - *be
   - less
+:archlinux:
+  - cpupower
