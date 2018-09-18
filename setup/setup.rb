@@ -11,7 +11,7 @@ cand = [%w[apt install], %w[apt-get install], %w[yum install]]
 tmp = cand.select{|cmd| !`which #{cmd.first}`.empty?}.first || %w[none]
 
 print %Q{"#{cmd=tmp.join(" ")}" is your install cmd? or Enter your install cmd (e.g. apt-get install) >> }
-INSTALL = if !(line=gets.strip).empty? and line =~ /^n(?:o)/i then
+INSTALL = if !(line=gets.strip).empty? and line !~ /^n(?:o)/i then
             line
           else
             cmd

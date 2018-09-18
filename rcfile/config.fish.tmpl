@@ -1,4 +1,3 @@
-set -x fish_user_path $HOME/usr/local/julia-d386e40c17/bin $fish_user_path
 
 # pink
 set fish_color_autosuggestion ffddf1
@@ -42,10 +41,9 @@ set fish_pager_color_progress white --background=cyan
 
 
 <%= custom <<-"CUSTOM"
-pyenv init - | source
-pyenv virtualenv-init - | source
 
-set -U fish_user_paths $HOME/Mizuho/Linux/julia/bin $fish_user_paths
+# asdf
+source ~/.asdf/asdf.fish
 
 CUSTOM
 %>
