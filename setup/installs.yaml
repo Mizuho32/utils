@@ -1,5 +1,6 @@
 :common:
   - fish
+  - zsh
   - git
   - vim
   - tmux
@@ -11,6 +12,7 @@
 # - libsecret
   - git-branch-status
   - htop
+  - x11vnc
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -19,4 +21,8 @@
   - *be
   - less
 :archlinux:
+  - yay
+  - aurman
   - cpupower
+  - compiz
+  - emerald
