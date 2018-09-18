@@ -27,9 +27,8 @@ def sys_install(name)
     cmd = %Q|sudo #{INSTALL} "#{name}"| 
   end
   puts "in #{ENV["PWD"]}, exec #{cmd}"
-  r = Open3.capture3 cmd
-  puts r[0..1].join("\n")
-  r
+  system cmd
+  $?
 end
 
 print "Install common? >> "
@@ -38,6 +37,7 @@ if gets.chomp =~ /y(?:es)?/i then
   common = installs[:common].map{|name|
     puts "install #{name}..."
     r = sys_install(name)
+    r = [r] unless r.is_a?(Array)
     if r.last.exitstatus.zero? then
       true
     else
@@ -67,6 +67,7 @@ unless distri.nil?  then
    dists = installs[distri].map{|name|
     puts "install #{name}..."
     r = sys_install(name)
+    r = [r] unless r.is_a?(Array)
     if r.last.exitstatus.zero? then
       true
     else
