@@ -27,8 +27,7 @@ alias LS="sl"
 # Set DISPLAY ENV?
 if [ "${SSH_CLIENT}" != "" ]; then
   echo ""
-  echo -n 'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
-  read input
+  read input\?'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
 
   if [ "${input}" != "n" -a "${input}" != "" ]; then
     export DISPLAY="localhost:${input}.0"
