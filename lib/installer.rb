@@ -61,9 +61,12 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
       if File.exist? dest then
 
         FileUtils.mkdir("#{cur}/#{bk_dir}/") unless File.exist? "#{cur}/#{bk_dir}/"
-        FileUtils.mv(dest, "#{cur}/#{bk_dir}/")
-        backup[File.basename(target_name.to_s)] = dest
-
+        begin
+          FileUtils.mv(dest, "#{cur}/#{bk_dir}/")
+          backup[File.basename(target_name.to_s)] = dest
+        rescue ArgumentError => ex
+          STDERR.puts "#{__FILE__}:#{__LINE__}:#{ex.message}"
+        end
       end
 
 
@@ -72,6 +75,9 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
 
       exit unless yn =~ /^y/
 
+
+      updir = Pathname(dest).expand_path + "../"
+      FileUtils.mkdir_p(updir) unless File.exist?(updir)
       FileUtils.symlink("#{cur}/#{source_name}", dest)
     
       backup
