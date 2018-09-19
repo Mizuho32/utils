@@ -29,7 +29,7 @@ run command on clipboard contents=Alt+Shift+F2
 
 [ksmserver][Global Shortcuts]
 Halt Without Confirmation=Ctrl+Alt+Shift+PgDown
-Lock Session=Ctrl+Alt+L; Meta+L
+Lock Session=Meta+L;\s
 Log Out=Ctrl+Alt+Del
 Log Out Without Confirmation=Ctrl+Alt+Shift+Del
 Reboot Without Confirmation=Ctrl+Alt+Shift+PgUp
