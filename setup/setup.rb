@@ -17,19 +17,38 @@ INSTALL = if !(line=gets.strip).empty? and line !~ /^n(?:o)/i then
             cmd
           end
 
-def sys_install(name)
+def check_existance(name)
   existance = Open3.capture3 "which #{name}"
-  return existance if existance.last.exitstatus.zero?
+
+  if existance.last.exitstatus.zero?
+    return existance 
+  else
+    if @checker.nil?
+      print """The existance of #{name} not solved automatically
+      Enter the cmd name to check installed? >>"""
+      @checker = STDIN.gets.chomp
+    end
+    puts "run #{@checker} #{name}"
+    system "#{@checker} #{name}"
+    return [nil,nil,$?] if $?.exitstatus.zero?
+  end
+end
+
+def sys_install(name)
+  name = name.strip
+  existance = check_existance(name)
+  return existance unless existance.nil?
+
 
   if File.exist? "./custom/#{name}" then
     cmd = "./custom/#{name}"
   else
-    cmd = %Q|sudo #{INSTALL} "#{name}"| 
+    cmd = %Q|#{INSTALL} "#{name}"| 
   end
   puts "in #{ENV["PWD"]}, exec #{cmd}"
-  r = Open3.capture3 cmd
-  puts r[0..1].join("\n")
-  r
+  system cmd
+  return [nil,nil,$?]
+  $?
 end
 
 print "Install common? >> "
