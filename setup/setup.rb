@@ -17,9 +17,26 @@ INSTALL = if !(line=gets.strip).empty? and line !~ /^n(?:o)/i then
             cmd
           end
 
-def sys_install(name)
+def check_existance(name)
   existance = Open3.capture3 "which #{name}"
-  return existance if existance.last.exitstatus.zero?
+
+  if existance.last.exitstatus.zero?
+    return existance 
+  else
+    if @checker.nil?
+      print """The existance of #{name} not solved automatically
+      Enter the cmd name to check installed? >>"""
+      @checker = STDIN.gets
+    end
+    system "#{@checker} #{name}"
+    return [nil,nil,$?] if $?.exitstatus.zero?
+  end
+end
+
+def sys_install(name)
+  existance = check_existance(name)
+  return existance if existance&.last&.exitstatus&.zero?
+
 
   if File.exist? "./custom/#{name}" then
     cmd = "./custom/#{name}"
@@ -28,6 +45,7 @@ def sys_install(name)
   end
   puts "in #{ENV["PWD"]}, exec #{cmd}"
   system cmd
+  return [nil,nil,$?]
   $?
 end
 
@@ -37,7 +55,6 @@ if gets.chomp =~ /y(?:es)?/i then
   common = installs[:common].map{|name|
     puts "install #{name}..."
     r = sys_install(name)
-    r = [r] unless r.is_a?(Array)
     if r.last.exitstatus.zero? then
       true
     else
@@ -67,7 +84,6 @@ unless distri.nil?  then
    dists = installs[distri].map{|name|
     puts "install #{name}..."
     r = sys_install(name)
-    r = [r] unless r.is_a?(Array)
     if r.last.exitstatus.zero? then
       true
     else
