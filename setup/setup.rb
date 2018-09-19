@@ -26,16 +26,18 @@ def check_existance(name)
     if @checker.nil?
       print """The existance of #{name} not solved automatically
       Enter the cmd name to check installed? >>"""
-      @checker = STDIN.gets
+      @checker = STDIN.gets.chomp
     end
+    puts "run #{@checker} #{name}"
     system "#{@checker} #{name}"
     return [nil,nil,$?] if $?.exitstatus.zero?
   end
 end
 
 def sys_install(name)
+  name = name.strip
   existance = check_existance(name)
-  return existance if existance&.last&.exitstatus&.zero?
+  return existance unless existance.nil?
 
 
   if File.exist? "./custom/#{name}" then
