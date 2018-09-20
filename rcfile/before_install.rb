@@ -14,6 +14,7 @@ WARN
   exit(1)
 end
 
+# vim location
 vim = "$HOME"
 vimruntime = safe_run_cmd("locate vim") {|ex|
   puts "#{ex.message}",""
@@ -26,6 +27,10 @@ rcfile_path = Pathname(__FILE__).expand_path.dirname
 if vimruntime.nil? or vimruntime.empty? then
   $stderr.puts "$VIMRUNTIME is empty"
 end
+
+# tmux prefix-key
+key = File.read(rcfile_path + "../tmux/tmux.conf")[/prefix\s+C-(\w)/, 1]
+puts "tmux key if #{key}"
 
 {
   zsh:  'zshrc',

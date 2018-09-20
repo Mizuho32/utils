@@ -1,16 +1,18 @@
 :common:
   - fish
+  - zsh
   - git
   - vim
   - tmux
   - tig
   - tig-colors-neonwolf
-  - docky
-  - terminator
-  - gnome-system-monitor
-  - libsecret
+# - docky
+# - terminator
+# - gnome-system-monitor
+# - libsecret
   - git-branch-status
   - htop
+  - x11vnc
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -18,3 +20,21 @@
 :debian:
   - *be
   - less
+:archlinux:
+  - yay
+  - aurman
+  - cpupower
+  - compiz
+  - emerald
+  - bat
+  - thunar
+  - gvfs
+  - thunar-archive-plugin
+  - thunar-shares-plugin
+  - thunar-volman
+  - tumbler
+  - sshfs
+  - lsof
+  - compiz
+  - emerald
+  - kwallet-pam
