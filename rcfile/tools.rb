@@ -41,7 +41,7 @@ def to_fish(rc)
       if line =~ /(?:\s|\n)*if/ then
         line.gsub(/(\s+)!(\s+)/, '\1not\2')                                # ! -> not
       elsif line =~ /^(\s+)*read\s+(\w+)\\\?(.+)$/ then
-        "#{$1}read -P #{$3} #{$2}"                           # read -P
+        "#{$1}read -P #{$3} #{$2}\n"                           # read -P
       elsif line !~ /if/ then
         line.gsub(/^(\s+)*([^=]+)=(.+)$/, '\1set \2 \3')     # assign
       else
