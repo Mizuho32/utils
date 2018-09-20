@@ -55,12 +55,40 @@ eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
 
+#nvm
+#. ~/.nvm/nvm.sh
+# alias get_nvm=". ~/.nvm/nvm.sh"
+
+#################### ALIAS ################
+alias sudo="sudo -E"
+alias open="xdg-open"
+alias here="./"
+alias gcc="gcc -Wall"
+alias sl="sl -e"
+
+########################### EXPORTS ##################
+export PATH=$PATH:~/bin:~/.local/bin
+export PATH="$HOME/.rbenv/bin:$PATH:$HOME/usr/local/redpen/bin"
+export RUBYLIB="$RUBYLIB:$HOME/lib/ruby"
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+export RBENV_ROOT="$HOME/.rbenv"
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+
+
+################ Command not Found ####################
+# source /etc/zsh_command_not_found
+
+
 # History
 HISTFILE=~/.zsh_history
 HISTSIZE=2000
 SAVEHIST=2000
 setopt hist_ignore_dups     # ignore duplication command history list
 setopt share_history        # share command history data
+
+source $HOME/.asdf/asdf.sh              
+source $HOME/.asdf/completions/asdf.bash
 
 <%= custom <<-"CUSTOM"
 CUSTOM
