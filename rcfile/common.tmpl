@@ -34,48 +34,49 @@ if [ "${SSH_CLIENT}" != "" ]; then
 fi
 
 # Tmux select
-if ! [ -z "$TMUX" ]; then
-  exit
-fi
+if  [ -z "$TMUX" ]; then
 
-tmux_ls=$(tmux ls)
+  tmux_ls=$(tmux ls)
 
-if [ $? -eq 0 ]; then
-  
-  names=()
+  if [ $? -eq 0 ]; then
+    
+    names=()
 
-  for line in $tmux_ls; do
-    name=$(echo $line | grep -oP '^([^:]+):' | sed 's/://')
-    prefix=$(tmux show-options -t "${name}" prefix)
-    echo "${line} Prefix: ${prefix}"
-    names+=( $name )
-  done
+    for line in $tmux_ls; do
+      name=$(echo $line | grep -oP '^([^:]+):' | sed 's/://')
+      prefix=$(tmux show-options -t "${name}" prefix)
+      echo "${line} Prefix: ${prefix}"
+      names+=( $name )
+    done
 
-  echo -e "\n"
-fi
+    echo -e "\n"
+  fi
+
   read session\?'which to attach? (e)xit or new tmux session >>'
 
-  if [ "$session" = "e" ]; then
-    exit
-  fi
+  # Exit session
+  if ! [ "$session" = "e" ]; then
 
-  read key\?'Set Prefix key to >>'
-
-  for name in $names; do
-    if [ "$name" = "$session" ]; then
-      if ! [ -z "$key" ]; then
-        tmux set -t "${session}" prefix C-"${key}"
-      else
-        tmux set -t "${session}" prefix C-<%= key %>
+    read key\?'Set Prefix key to >>'
+    for name in $names; do
+      if [ "$name" = "$session" ]; then
+        if ! [ -z "$key" ]; then
+          tmux set -t "${session}" prefix C-"${key}"
+        else
+          tmux set -t "${session}" prefix C-<%= key %>
+        fi
+        tmux a -t "${session}"
       fi
-      tmux a -t "${session}"
-    fi
-  done
+    done
 
-  tmux new -d -s "${session}"
-  if ! [ -z "$key" ]; then
-    tmux set -t "${session}" prefix C-"${key}"
-  else
-    tmux set -t "${session}" prefix C-<%= key %>
-  fi
-  tmux a -t "${session}"
+    tmux new -d -s "${session}"
+    if ! [ -z "$key" ]; then
+      tmux set -t "${session}" prefix C-"${key}"
+    else
+      tmux set -t "${session}" prefix C-<%= key %>
+    fi
+    tmux a -t "${session}"
+
+  fi # Exit session
+
+fi # Tmux select
