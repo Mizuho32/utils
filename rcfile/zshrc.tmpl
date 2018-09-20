@@ -62,11 +62,9 @@ SAVEHIST=2000
 setopt hist_ignore_dups     # ignore duplication command history list
 setopt share_history        # share command history data
 
-. $HOME/.asdf/asdf.sh              
-. $HOME/.asdf/completions/asdf.bash
+source $HOME/.asdf/asdf.sh              
+source $HOME/.asdf/completions/asdf.bash
 
 <%= custom <<-"CUSTOM"
-eval "$(rbenv init -)"
-eval "$(pyenv init -)"
 CUSTOM
 %>
