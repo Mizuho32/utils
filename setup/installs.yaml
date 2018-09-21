@@ -38,3 +38,6 @@
   - lsof
   - kwallet-pam
   - linux-lts
+  - otf-takao
+  - otf-ipafont
+  - noto-fonts-cjk 
