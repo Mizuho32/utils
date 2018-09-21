@@ -1,0 +1,14 @@
+#!/usr/bin/env fish
+
+# https://bryanwweber.com/writing/personal/2016/01/01/how-to-set-up-an-encrypted-netrc-file-with-gpg-for-github-2fa-access/
+# https://qiita.com/r-tamura/items/c6e49a3eb7f7f8aafb9d
+
+git config --global credential.helper "netrc -f ~/.netrc.gpg -v"
+
+mkdir $HOME/bin
+
+cd custom
+
+if not [ -e "git-credential-netrc" ]
+  curl -o git-credential-netrc https://raw.githubusercontent.com/git/git/master/contrib/credential/netrc/git-credential-netrc
+end
