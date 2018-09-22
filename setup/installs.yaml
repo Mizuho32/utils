@@ -25,13 +25,13 @@
   - yay
   - aurman
   - cpupower
-  - compiz
-  - emerald
+# - compiz
+# - emerald
   - bat
   - thunar
   - gvfs
   - thunar-archive-plugin
-  - thunar-shares-plugin
+# - thunar-shares-plugin
   - thunar-volman
   - tumbler
   - sshfs
