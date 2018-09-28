@@ -35,5 +35,7 @@
   - tumbler
   - sshfs
   - lsof
+  - iotop
   - kwallet-pam
   - linux-lts
+  - lastpass-cli
