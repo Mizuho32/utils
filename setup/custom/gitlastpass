@@ -7,3 +7,4 @@ mkdir $HOME/bin
 cd custom
 
 wget https://github.com/lastpass/lastpass-cli/raw/master/contrib/examples/git-credential-lastpass
+chmod u+x git-credential-lastpass
