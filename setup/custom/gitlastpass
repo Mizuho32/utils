@@ -1,0 +1,9 @@
+#!/usr/bin/env fish
+
+git config --global credential.helper lastpass
+
+mkdir $HOME/bin
+
+cd custom
+
+wget https://github.com/lastpass/lastpass-cli/raw/master/contrib/examples/git-credential-lastpass
