@@ -7,9 +7,9 @@
   - tig
   - tig-colors-neonwolf
   - docky
-  - terminator
-  - gnome-system-monitor
-  - libsecret
+# - terminator
+# - gnome-system-monitor
+# - libsecret
   - netrc
   - gitlastpass
   - git-branch-status
