@@ -11,6 +11,7 @@
   - gnome-system-monitor
   - libsecret
   - netrc
+  - gitlastpass
   - git-branch-status
   - htop
   - x11vnc
@@ -36,9 +37,12 @@
   - tumbler
   - sshfs
   - lsof
+  - iotop
   - kwallet-pam
   - linux-lts
   - otf-takao
   - otf-ipafont
   - noto-fonts-cjk 
   - poppler-data
+  - lastpass-cli
+  - xsel
