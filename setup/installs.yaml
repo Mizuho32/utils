@@ -11,6 +11,7 @@
 # - gnome-system-monitor
 # - libsecret
 # - netrc
+  - lastpass-cli
   - gitlastpass
   - git-branch-status
   - htop
@@ -44,5 +45,4 @@
   - otf-ipafont
   - noto-fonts-cjk 
   - poppler-data
-  - lastpass-cli
   - xsel
