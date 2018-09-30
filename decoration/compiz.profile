@@ -531,7 +531,7 @@ s0_flip_up_edge = Top
 s0_flip_down_edge = Bottom
 s0_mmmode = 0
 s0_edgeflip_pointer = false
-s0_edgeflip_move = true
+s0_edgeflip_move = false
 s0_edgeflip_dnd = false
 
 [shift]
@@ -823,8 +823,8 @@ s0_position_matches = title=HideTerm;title=Computers & Contacts;
 s0_position_x_values = 240;200;
 s0_position_y_values = 25;200;
 s0_position_constrain_workarea = false;false;
-s0_mode_matches = 
-s0_mode_modes = 
+s0_mode_matches = class=plasmashell;
+s0_mode_modes = 1;
 s0_viewport_matches = class=Prism;title=HideTerm;title=Computers & Contacts;
 s0_viewport_x_values = 1;1;2;
 s0_viewport_y_values = 2;2;1;
@@ -858,9 +858,9 @@ s0_animtime = 150
 s0_interval = 0.900000
 
 [animation]
-s0_open_effects = animation:Glide 1;animationaddon:Glide 3;animation:Fade;animation:Glide 2;
+s0_open_effects = animation:Wave;animationaddon:Glide 3;animation:Fade;animation:Glide 2;
 s0_open_durations = 573;250;80;354;
-s0_open_matches = ((type=Normal | Unknown) | name=sun-awt-X11-XFramePeer | name=sun-awt-X11-XDialogPeer) & !(role=toolTipTip | role=qtooltip_label) & !(type=Normal & override_redirect=1) & !(name=gnome-screensaver);(type=Menu | PopupMenu | DropdownMenu | Dialog);(type=Tooltip | Notification | Utility) & !(name=compiz) & !(title=notify-osd);(ModalDialog | Normal);
+s0_open_matches = ((type=Normal | Unknown) | name=sun-awt-X11-XFramePeer | name=sun-awt-X11-XDialogPeer) & !(role=toolTipTip | role=qtooltip_label) & !(type=Normal & override_redirect=1) & !(name=gnome-screensaver);(type=Menu | PopupMenu | DropdownMenu | Dialog);(type=Tooltip | Notification | Utility) & !(name=compiz) & !(title=notify-osd) | class=plasmashell;(ModalDialog | Normal);
 s0_open_options = ;;;;
 s0_open_random_effects = 
 s0_close_effects = animation:Fade;animationaddon:Glide 3;animation:None;
@@ -1217,7 +1217,7 @@ s0_default_icon = icon
 s0_do_serialize = false
 s0_overlapping_outputs = 0
 s0_detect_outputs = true
-s0_outputs = 1600x900+0+0;
+s0_outputs = 1920x1080+0+0;
 s0_click_to_focus = true
 s0_raise_on_click = true
 s0_autoraise = true
