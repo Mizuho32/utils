@@ -6,10 +6,13 @@
   - tmux
   - tig
   - tig-colors-neonwolf
-# - docky
-# - terminator
-# - gnome-system-monitor
-# - libsecret
+  - docky
+  - terminator
+  - gnome-system-monitor
+  - libsecret
+  - netrc
+  - lastpass-cli
+  - gitlastpass
   - git-branch-status
   - htop
   - x11vnc
@@ -35,5 +38,11 @@
   - tumbler
   - sshfs
   - lsof
+  - iotop
   - kwallet-pam
   - linux-lts
+  - otf-takao
+  - otf-ipafont
+  - noto-fonts-cjk 
+  - poppler-data
+  - xsel
