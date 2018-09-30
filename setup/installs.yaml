@@ -1,16 +1,16 @@
 :common:
   - fish
-  - zsh
+# - zsh
   - git
   - vim
   - tmux
   - tig
   - tig-colors-neonwolf
   - docky
-  - terminator
-  - gnome-system-monitor
-  - libsecret
-  - netrc
+# - terminator
+# - gnome-system-monitor
+# - libsecret
+# - netrc
   - lastpass-cli
   - gitlastpass
   - git-branch-status
