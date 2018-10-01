@@ -11,6 +11,7 @@
 # - gnome-system-monitor
 # - libsecret
   - netrc
+  - lastpass-cli
   - gitlastpass
   - git-branch-status
   - htop
@@ -31,6 +32,7 @@
   - bat
   - thunar
   - gvfs
+  - gvfs-smb
   - thunar-archive-plugin
   - thunar-shares-plugin
   - thunar-volman
@@ -40,5 +42,8 @@
   - iotop
   - kwallet-pam
   - linux-lts
-  - lastpass-cli
+  - otf-takao
+  - otf-ipafont
+  - noto-fonts-cjk 
+  - poppler-data
   - xsel
