@@ -45,5 +45,6 @@
   - otf-takao
   - otf-ipafont
   - noto-fonts-cjk 
+  - evince
   - poppler-data
   - xsel
