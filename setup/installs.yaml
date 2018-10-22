@@ -32,6 +32,7 @@
   - bat
   - thunar
   - gvfs
+  - gvfs-mtp
   - gvfs-smb
   - thunar-archive-plugin
   - thunar-shares-plugin
