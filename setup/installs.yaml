@@ -31,6 +31,8 @@
   - bat
   - thunar
   - gvfs
+  - gvfs-mtp
+  - gvfs-smb
   - thunar-archive-plugin
 # - thunar-shares-plugin
   - thunar-volman
@@ -43,6 +45,7 @@
   - otf-takao
   - otf-ipafont
   - noto-fonts-cjk 
+  - evince
   - poppler-data
   - lastpass-cli
   - xsel
