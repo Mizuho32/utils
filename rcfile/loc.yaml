@@ -6,6 +6,7 @@
     :fish_prompt.fish: :".config/fish/functions/fish_prompt.fish"
     :"fish/fish_logo/functions/fish_logo.fish": :".config/fish/functions/fish_logo.fish"
     :"fish/fish_greeting.fish": :".config/fish/functions/fish_greeting.fish"
+    :"fish/noasdf.fish": :".config/fish/functions/noasdf.fish"
     :"fish/bundle.fish":        :".config/fish/completions/bundle.fish"
     :"fish/git.fish":           :".config/fish/completions/git.fish"
     :"fish/mount.fish":         :".config/fish/completions/mount.fish"
