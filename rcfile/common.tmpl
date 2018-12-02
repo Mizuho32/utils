@@ -3,7 +3,9 @@
 <%=
 export <<-"PATH"
 $HOME/bin
+$HOME/.local/bin
 $HOME/usr/local/bin
+$HOME/esp/xtensa-esp32-elf/bin
 PATH
 %>
 
@@ -14,6 +16,8 @@ export VIMRUNTIME=<%= vimruntime %>
 export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
 ## for pyenv
 export CONFIGURE_OPTS="--enable-shared" 
+# esp32
+export IDF_PATH=$HOME/esp/esp-idf
 
 # alias
 alias open="xdg-open"
