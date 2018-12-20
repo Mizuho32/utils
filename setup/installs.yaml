@@ -49,3 +49,6 @@
   - evince
   - poppler-data
   - xsel
+  - unzip-iconv
+  - vivaldi-codecs-ffmpeg-extra-bin
+  - cheat-git
