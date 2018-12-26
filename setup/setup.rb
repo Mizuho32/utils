@@ -6,9 +6,12 @@ require 'open3'
 
 installs = YAML.load_file "installs.yaml"
 
-cand = [%w[apt install], %w[apt-get install], %w[yum install]]
+cand = [%w[apt install], %w[apt-get install], %w[yum install], %w[yay -S]]
 
-tmp = cand.select{|cmd| !`which #{cmd.first}`.empty?}.first || %w[none]
+tmp = cand.select{|cmd| 
+  `which #{cmd.first} >> /dev/null 2>&1`
+  $?.exitstatus.zero?
+}.first || %w[none]
 
 print %Q{"#{cmd=tmp.join(" ")}" is your install cmd? or Enter your install cmd (e.g. apt-get install) >> }
 INSTALL = if !(line=gets.strip).empty? and line !~ /^n(?:o)/i then
@@ -72,16 +75,17 @@ end
 
 puts <<-"LIST"
 #{
-  (dists = installs
-    .keys[1..-1])
+  (dists = installs.keys.tap{|ar| ar.delete :common})
     .each_with_index
     .map{|el, i| "  #{i} #{el}" }
     .join("\n")
   }
   #{installs.keys.size} cancel
 LIST
+
 print "\nDistribution dependent\nEnter number >> "
 distri = dists[gets.chomp.to_i]
+
 unless distri.nil?  then
    dists = installs[distri].map{|name|
     puts "install #{name}..."
