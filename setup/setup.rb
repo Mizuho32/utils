@@ -12,11 +12,20 @@ def check_existance(name)
   if existance.last.exitstatus.zero?
     return existance 
   else
-    if @checker.nil?
-      print """The existance of #{name} not solved automatically
-      Enter the cmd name to check installed? >>"""
+    # detect package checker command
+    cand = [%w[dpkg -L], %w[yay -Qe]]
+    @checker = (cand.select{|cmd| 
+      `which #{cmd.first} >> /dev/null 2>&1`
+      $?.exitstatus.zero?
+    }.first || []).join(" ")
+
+    if @checker.empty?
+      print 
+"""The existance of #{name} not solved automatically
+Enter the cmd name to check installed? >>"""
       @checker = STDIN.gets.chomp
     end
+
     puts "run #{@checker} #{name}"
     system "#{@checker} #{name}"
     return [nil,nil,$?] if $?.exitstatus.zero?
@@ -56,24 +65,25 @@ INSTALL = input(%Q{"#{cmd=tmp.join(" ")}" is your install cmd? %s or Enter your 
   end
 }
 
-print "Install common? >> "
-if gets.chomp =~ /y(?:es)?/i then
+input("Install common? %s >> ", "yes"){|line|
+  if line.chomp =~ /y(?:es)?/i then
 
-  common = installs[:common].map{|name|
-    puts "install #{name}..."
-    r = sys_install(name)
-    if r.last.exitstatus.zero? then
-      true
-    else
-      r[0..1].join("\n")
-    end
-  }
-  
-  installs[:common].zip(common).each{|name,result|
-    puts "#{name}\n  #{result.to_s}"
-  }
+    common = installs[:common].map{|name|
+      puts "install #{name}..."
+      r = sys_install(name)
+      if r.last.exitstatus.zero? then
+        true
+      else
+        r[0..1].join("\n")
+      end
+    }
 
-end
+    installs[:common].zip(common).each{|name,result|
+      puts "#{name}\n  #{result.to_s}"
+    }
+
+  end
+}
 
 puts <<-"LIST"
 #{
