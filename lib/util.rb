@@ -19,3 +19,13 @@ def safe_run_cmd(cmd, &block)
     block.call(ex)
   end
 end
+
+def input(prompt, defvalue, &block)
+  printf prompt, "(default:#{defvalue})"
+  userinput = gets.chomp
+
+  userinput = defvalue if userinput.empty?
+  userinput = block.call(userinput) if block_given?
+
+  return userinput
+end

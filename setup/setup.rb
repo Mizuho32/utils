@@ -4,21 +4,7 @@
 require 'yaml'
 require 'open3'
 
-installs = YAML.load_file "installs.yaml"
-
-cand = [%w[apt install], %w[apt-get install], %w[yum install], %w[yay -S]]
-
-tmp = cand.select{|cmd| 
-  `which #{cmd.first} >> /dev/null 2>&1`
-  $?.exitstatus.zero?
-}.first || %w[none]
-
-print %Q{"#{cmd=tmp.join(" ")}" is your install cmd? or Enter your install cmd (e.g. apt-get install) >> }
-INSTALL = if !(line=gets.strip).empty? and line !~ /^n(?:o)/i then
-            line
-          else
-            cmd
-          end
+require_relative "../lib/util"
 
 def check_existance(name)
   existance = Open3.capture3 "which #{name}"
@@ -42,7 +28,6 @@ def sys_install(name)
   existance = check_existance(name)
   return existance unless existance.nil?
 
-
   if File.exist? "./custom/#{name}" then
     cmd = "./custom/#{name}"
   else
@@ -53,6 +38,23 @@ def sys_install(name)
   return [nil,nil,$?]
   $?
 end
+
+installs = YAML.load_file "installs.yaml"
+
+cand = [%w[apt install], %w[apt-get install], %w[yum install], %w[yay -S]]
+
+tmp = cand.select{|cmd| 
+  `which #{cmd.first} >> /dev/null 2>&1`
+  $?.exitstatus.zero?
+}.first || %w[none]
+
+INSTALL = input(%Q{"#{cmd=tmp.join(" ")}" is your install cmd? %s or Enter your install cmd (e.g. apt-get install) >> }, "yes") {|user|
+  if user =~ /^y(?:es)?/i then
+    cmd
+  else
+    user
+  end
+}
 
 print "Install common? >> "
 if gets.chomp =~ /y(?:es)?/i then
