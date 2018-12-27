@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'open3'
+
+default   = ARGV.first || :right
+displays  = Open3.capture3("xrandr").first.split("\n")
+            .select{|n| n =~ / connected/}
+            .map{|n| n[/^([^\s]+)\s+conne/, 1]}
+
+puts <<-"DISP"
+
+which to set?
+
+#{ (0..displays.size).map{|n| "#{n}: " + (n == 0 ? "auto" : "monitor-#{n}")}.join("\n") }
+DISP
+
+print("Enter number>> ")
+val     = $stdin.gets.chomp.to_i
+
+monitor = if val.zero? then
+            ""
+          else
+            "monitor-#{val-1}"
+          end
+
+docky   = if val.zero? then
+            (displays.size - 1 if default == :right).to_i
+          else
+            val - 1
+          end
+
+puts(val, monitor, docky)
+
+Open3.capture3(%Q|xfconf-query -c xfce4-panel -p /panels/panel-0/output-name -s "#{monitor}"|)
+
+`killall docky`
+Open3.capture3(%Q{gconftool-2 --set /apps/docky-2/Docky/Interface/DockPreferences/Dock1/MonitorNumber --type=int #{docky}})
+

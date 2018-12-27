@@ -6,6 +6,7 @@ require 'yaml'
 require_relative 'installer'
 require_relative 'util'
 
+mode = :install
 
 if (dir = ARGV.first.to_s).empty?
 
@@ -15,8 +16,12 @@ if (dir = ARGV.first.to_s).empty?
 elsif File.exist? "#{dir}/installed"
 
   puts "Already installed"
-  exit(2)
-
+  print "Update? [y/n] >>"
+  mode = if STDIN.gets.chomp =~ /^y/ then
+           :update
+         else
+           exit(2)
+         end
 end
 
 Dir::chdir(dir)
@@ -28,20 +33,17 @@ f = y.delete :after_install
 i.each{ |cmd| system cmd } if i
 
 r = y[:type].map{|type, loc|
+  begin
 
-  if type == :sym then
-
-    install_sym(
+    send("#{mode}_#{type}", *[{
       loc:    loc,
       bk_dir: "backups",
       bk_lst: "backups.yaml",
       cur:    Dir::pwd
-    ) 
+    }])
   
-  else
-
+  rescue NoMethodError=> ex
     raise NotImplementedError.new("type #{type}")
-
   end
 
 } unless y[:type].nil?

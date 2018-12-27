@@ -1,0 +1,53 @@
+
+# pink
+set fish_color_autosuggestion ffddf1
+set fish_color_cancel red
+# command name cyan
+set fish_color_command 00ffff
+# comment dark cyan
+set fish_color_comment 00afaf
+# current working directory
+set fish_color_cwd green
+set fish_color_cwd_root red
+#   or & yellow
+set fish_color_end yellow --bold
+set fish_color_error red
+# color of escape character
+set fish_color_escape yellow --bold
+set fish_color_history_current --bold
+set fish_color_host normal
+# matching parenthesis
+set fish_color_match brcyan --background=brblue
+set fish_color_normal normal
+# * and ~
+set fish_color_operator bryellow
+# command param gray
+set fish_color_param dadada
+# orange
+set fish_color_quote ffaf5f
+set fish_color_redirection 00ff5f
+# history search match dark purple
+set fish_color_search_match --background=ad38bc
+set fish_color_selection white --bold --background=brblack
+set fish_color_user brgreen
+set fish_color_valid_path --underline
+set fish_key_bindings fish_default_key_bindings
+# color of completion itself
+set fish_pager_color_completion normal
+# color of completion description dark yellow
+set fish_pager_color_description B3A06D
+set fish_pager_color_prefix white --bold --underline
+set fish_pager_color_progress white --background=cyan
+
+
+<%= custom <<-"CUSTOM"
+
+# asdf
+source ~/.asdf/asdf.fish
+
+# pyenv
+# pyenv init - | source
+# pyenv virtualenv-init - | source
+
+CUSTOM
+%>
