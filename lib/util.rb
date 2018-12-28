@@ -22,7 +22,7 @@ end
 
 def input(prompt, defvalue, &block)
   printf prompt, "(default:#{defvalue})"
-  userinput = gets.chomp
+  userinput = STDIN.gets.chomp
 
   userinput = defvalue if userinput.empty?
   userinput = block.call(userinput) if block_given?
