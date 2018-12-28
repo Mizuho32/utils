@@ -33,7 +33,7 @@ f = y.delete :after_install
 
 i.each{ |cmd| system cmd } if i
 
-r = y[:type].map{|type, loc|
+r = exclude_files(y[:type]).map{|type, loc|
   begin
 
     send("#{mode}_#{type}", *[{

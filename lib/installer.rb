@@ -2,6 +2,12 @@ require 'fileutils'
 require 'pathname'
 require 'yaml'
 
+if not defined? DEBUG and ENV.include?("DEBUG")
+  DEBUG = true
+  ENV["HOME"] = (Pathname(__FILE__).expand_path.dirname + "../home").to_s
+  FileUtils.mkdir(ENV["HOME"]) if not File.exists?(ENV["HOME"])
+end
+
 def update_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
 
   loc.each{ |source_name, target_name|
@@ -71,11 +77,7 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
       end
 
 
-      print "\nInstall #{dest} ? [y/n] >>"
-      yn = STDIN.gets.chomp
-
-      exit unless yn =~ /^y/
-
+      print "\nInstall #{dest}"
 
       updir = Pathname(dest).expand_path + "../"
       FileUtils.mkdir_p(updir) unless File.exist?(updir)
