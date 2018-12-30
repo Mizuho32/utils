@@ -1,19 +1,20 @@
 
-# PATH 
-<%=
-export <<-"PATH"
-$HOME/bin
-$HOME/usr/local/bin
-PATH
-%>
-
 # export
 export GIT_EDITOR=vim
 export VIM=<%= vim %>
 export VIMRUNTIME=<%= vimruntime %>
 export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
+export GOPATH=/opt/go
 ## for pyenv
 export CONFIGURE_OPTS="--enable-shared" 
+
+# PATH 
+<%=
+export <<-"PATH"
+$HOME/bin
+$GOPATH/bin
+PATH
+%>
 
 # alias
 alias open="xdg-open"
