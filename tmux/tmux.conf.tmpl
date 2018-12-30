@@ -12,13 +12,17 @@ set -sg escape-time 0
 ## Clipboard
 
 # copy to clipboard
-bind-key -T copy-mode-vi Enter send -X copy-pipe-and-cancel "cat | xsel -i --clipboard"
+<%= d[:clipboard] %>
 
 
 ## Keybind
 
 # vim key bind in copy mode
 set-window-option -g mode-keys vi
+
+# Begin selection in copy mode.
+# https://superuser.com/questions/395158/tmux-copy-mode-select-text-block
+<%= d[:block_selection] %>
 
 # continue current directory
 bind c new-window -c "#{pane_current_path}"
@@ -57,7 +61,7 @@ set -qg status-interval 1
 set -qg status-left "[#S]@#H"
 set -qg status-left-length 30
 	# right
-set -qg status-right "%m/%d(%a)%H:%M:%S #(tmux show-option -g prefix | sed 's/^prefix //')"
+set -qg status-right "#[bg=colour002,fg=colour195]%m/%d(%a)%H:%M:%S #(tmux show-option -g prefix | sed 's/^prefix //')#[default]"
 #set -qg status-right-length 256
 	# window caption
 set -g window-status-format " #I:#W"
