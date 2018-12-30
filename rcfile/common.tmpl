@@ -1,0 +1,84 @@
+
+# PATH 
+<%=
+export <<-"PATH"
+$HOME/bin
+$HOME/usr/local/bin
+PATH
+%>
+
+# export
+export GIT_EDITOR=vim
+export VIM=<%= vim %>
+export VIMRUNTIME=<%= vimruntime %>
+export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
+## for pyenv
+export CONFIGURE_OPTS="--enable-shared" 
+
+# alias
+alias open="xdg-open"
+alias sl="sl -e"
+alias LS="sl"
+
+<%= cstm %>
+
+#################### ssh Login prompt #####################
+# Set DISPLAY ENV?
+if [ "${SSH_CLIENT}" != "" ]; then
+  echo ""
+  read input\?'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
+
+  if [ "${input}" != "n" -a "${input}" != "" ]; then
+    export DISPLAY="localhost:${input}.0"
+  fi
+fi
+
+# Tmux select
+if  [ -z "$TMUX" ]; then
+
+  tmux_ls=$(tmux ls)
+
+  if [ $? -eq 0 ]; then
+    
+    names=()
+
+    for line in $tmux_ls; do
+      name=$(echo $line | grep -oP '^([^:]+):' | sed 's/://')
+      prefix=$(tmux show-options -t "${name}" prefix)
+      echo "${line} Prefix: ${prefix}"
+      names+=( $name )
+    done
+
+    echo -e "\n"
+  fi
+
+  read session\?'which to attach? (e)xit or new tmux session >>'
+
+  # Exit session
+  if ! [ "$session" = "e" ]; then
+
+    read key\?'Set Prefix key to >>'
+    for name in $names; do
+      if [ "$name" = "$session" ]; then
+        if ! [ -z "$key" ]; then
+          tmux set -t "${session}" prefix C-"${key}"
+        else
+          tmux set -t "${session}" prefix C-<%= key %>
+        fi
+        tmux a -t "${session}"
+      fi
+    done
+
+    tmux new -d -s "${session}"
+    if ! [ -z "$key" ]; then
+      tmux set -t "${session}" prefix C-"${key}"
+    else
+      tmux set -t "${session}" prefix C-<%= key %>
+    fi
+    tmux a -t "${session}"
+
+  fi
+  # Exit session
+
+fi
+# Tmux select

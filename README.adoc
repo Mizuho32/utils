@@ -1,0 +1,11 @@
+== Usage
+
+[source,bash]
+----
+$ ./lib/install rcfile
+----
+
+[source,bash]
+----
+$ ./lib/uninstall rcfile
+----

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd custom
+git clone https://github.com/bill-auger/git-branch-status.git gbs/
