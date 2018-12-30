@@ -5,17 +5,17 @@
   - vim
   - tmux
   - tig
-  - tig-colors-neonwolf
-  - docky
-  - terminator
-  - gnome-system-monitor
-  - libsecret
-  - netrc
-  - lastpass-cli
-  - gitlastpass
+# - tig-colors-neonwolf
+# - docky
+# - terminator
+# - gnome-system-monitor
+# - libsecret
+# - netrc
+# - lastpass-cli
+# - gitlastpass
   - git-branch-status
   - htop
-  - x11vnc
+# - x11vnc
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -25,31 +25,31 @@
   - less
 :archlinux:
   - yay
-  - aurman
-  - cpupower
-  - compiz
-  - emerald
-  - bat
-  - thunar
-  - gvfs
-  - gvfs-mtp
-  - gvfs-smb
-  - thunar-archive-plugin
-  - thunar-shares-plugin
-  - thunar-volman
-  - tumbler
-  - sshfs
+# - aurman
+# - cpupower
+# - compiz
+# - emerald
+# - bat
+# - thunar
+# - gvfs
+# - gvfs-mtp
+# - gvfs-smb
+# - thunar-archive-plugin
+# - thunar-shares-plugin
+# - thunar-volman
+# - tumbler
+# - sshfs
   - lsof
   - iotop
-  - kwallet-pam
-  - linux-lts
-  - otf-takao
-  - otf-ipafont
-  - noto-fonts-cjk 
-  - evince
-  - poppler-data
-  - xsel
+# - kwallet-pam
+# - linux-lts
+# - otf-takao
+# - otf-ipafont
+# - noto-fonts-cjk 
+# - evince
+# - poppler-data
+# - xsel
   - unzip-iconv
-  - vivaldi-codecs-ffmpeg-extra-bin
+# - vivaldi-codecs-ffmpeg-extra-bin
   - cheat-git
-  - simplescreenrecorder
+# - simplescreenrecorder
