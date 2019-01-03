@@ -33,8 +33,9 @@ key = File.read(rcfile_path + "../tmux/tmux.conf")[/prefix\s+C-(\w)/, 1]
 puts "tmux key if #{key}"
 
 {
-  zsh:  'zshrc',
-  fish: 'config.fish'
+  ash:  'profile',
+  #zsh:  'zshrc',
+  #fish: 'config.fish'
 }.each{|sh, bname|
   @type = sh
   @b    = binding

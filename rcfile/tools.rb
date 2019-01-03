@@ -59,6 +59,21 @@ def to_zsh(rc)
   rc
 end
 
+def to_ash(rc)
+  bchar = /(?:\s|[^#\w])/
+  rc
+    .gsub(/^(#{bchar}*)([^=\s]+)=\(\)$/, '\1\2=""')         # array declaration
+    .gsub(/^(#{bchar}*)([^=\s]+)\+=\(\s+([^=\s]+)\s+\)$/, 
+          '\1\2="$\2 \3"')                      # append to array
+    .each_line.map{|line|
+      if line =~ /^(\s+)*read\s+(\w+)\\\?(.+)$/ then          # read command
+        "#{$1}read -p #{$3} #{$2}\n"                               # read -P
+      else
+        line
+      end
+    }.join
+end
+
 def custom(cstm)
   @b.local_variable_set(:cstm, cstm.strip)
   common  = ERB.new(File.read("common.tmpl")).result(@b)
