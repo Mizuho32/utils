@@ -1,14 +1,4 @@
 
-# PATH 
-# /usr/local/cuda/bin
-# $HOME/usr/local/bin
-<%=
-export <<-"PATH"
-$HOME/bin
-$HOME/sources/esp/xtensa-esp32-elf/bin/
-PATH
-%>
-
 # export
 export GIT_EDITOR=vim
 export VIM=<%= vim %>
@@ -18,6 +8,14 @@ export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 export IDF_PATH=$HOME/sources/esp/esp-idf
 ## for pyenv
 export CONFIGURE_OPTS="--enable-shared" 
+
+# PATH 
+<%=
+export <<-"PATH"
+$HOME/bin
+$HOME/sources/esp/xtensa-esp32-elf/bin/
+PATH
+%>
 
 # alias
 alias open="xdg-open"
