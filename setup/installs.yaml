@@ -24,7 +24,7 @@
   - less
 :archlinux:
   - yay
-  - aurman
+# - aurman
   - cpupower
 # - compiz
 # - emerald
@@ -41,7 +41,7 @@
   - lsof
   - iotop
   - kwallet-pam
-  - linux-lts
+# - linux-lts
   - otf-takao
   - otf-ipafont
   - noto-fonts-cjk 
