@@ -16,6 +16,7 @@
   - git-branch-status
   - htop
   - x11vnc
+  - krdc
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
