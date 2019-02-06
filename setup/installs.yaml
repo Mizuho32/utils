@@ -16,6 +16,7 @@
   - git-branch-status
   - htop
   - x11vnc
+  - krdc
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -32,6 +33,7 @@
   - bat
   - thunar
   - gvfs
+  - gvfs-mtp
   - gvfs-smb
   - thunar-archive-plugin
   - thunar-shares-plugin
@@ -45,6 +47,13 @@
   - otf-takao
   - otf-ipafont
   - noto-fonts-cjk 
+  - evince
   - poppler-data
   - xsel
   - file-roller
+  - unzip-iconv
+  - vivaldi-codecs-ffmpeg-extra-bin
+  - cheat-git
+  - simplescreenrecorder
+  - xl2tpd
+  - networkmanager-l2tp
