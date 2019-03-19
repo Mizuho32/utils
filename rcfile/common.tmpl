@@ -22,6 +22,9 @@ alias LS="sl"
 <%= cstm %>
 
 #################### ssh Login prompt #####################
+# Scp block avoid
+if [ -t 0 ]; then
+
 # Set DISPLAY ENV?
 if [ "${SSH_CLIENT}" != "" ]; then
   echo ""
@@ -81,3 +84,5 @@ if  [ -z "$TMUX" ]; then
 
 fi
 # Tmux select
+fi
+# scp block avoid
