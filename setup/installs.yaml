@@ -16,6 +16,7 @@
   - git-branch-status
   - htop
   - x11vnc
+  - krdc
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -49,7 +50,10 @@
   - evince
   - poppler-data
   - xsel
+  - file-roller
   - unzip-iconv
   - vivaldi-codecs-ffmpeg-extra-bin
   - cheat-git
   - simplescreenrecorder
+  - xl2tpd
+  - networkmanager-l2tp
