@@ -15,18 +15,20 @@ WARN
   exit(1)
 end
 
-# vim location
-vim = "$HOME"
-vimruntime = safe_run_cmd("locate vim") {|ex|
-  puts "#{ex.message}",""
-  print "Where is vim runtime dir? >>"
-  STDIN.gets.chomp
-}.split("\n").select{|line| line =~ /^(?!.*snap).*vim\d+$/}.first
 rcfile_path = Pathname(__FILE__).expand_path.dirname
 
+# vim location
+vim = "$HOME"
+unless File.exist?(ENV["VIMRUNTIME"].to_s) 
+  vimruntime = safe_run_cmd("locate vim") {|ex|
+    puts "#{ex.message}",""
+    print "Where is vim runtime dir? >>"
+    STDIN.gets.chomp
+  }.split("\n").select{|line| line =~ /^(?!.*snap).*vim\d+$/}.first
 
-if vimruntime.nil? or vimruntime.empty? then
-  $stderr.puts "$VIMRUNTIME is empty"
+  if vimruntime.nil? or vimruntime.empty? then
+    $stderr.puts "$VIMRUNTIME is empty"
+  end
 end
 
 # Download fish completions
@@ -42,7 +44,7 @@ loc[:type][:sym]
   .map{|match| match[:filename] }
   .each{|filename|  
     url = "#{base}#{filename}"
-    File.write(rcfile_path+"fish/completions/#{filename}", open(url).read)
+    File.write(rcfile_path+"fish/completions/#{filename}", open(url).read) unless File.exist?(rcfile_path+"fish/completions/#{filename}")
   }
 
 # tmux prefix-key
