@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+#coding: utf-8
+
+if( ARGV.size < 2 && !(info = ARGV.any?{|s| s =~ /info/}) ) then
+	puts <<-'EOF'
+Usage:
+$ cpuset min max [governor]
+EOF
+	exit(1)
+elsif(info)
+  require 'open3'
+  out = Open3.capture3 "cpupower  frequency-info  | grep Hz"
+  puts out[0].split("\n").select{|n| n.include? "freq"}
+  exit(0)
+end
+
+min = ARGV[0]
+max = ARGV[1]
+governor = ARGV[2] || "powersave"
+
+system "sudo cpupower  frequency-set -u #{max}"
+#`cat /proc/cpuinfo`.split("\n\n").size.times.each{|core|
+#	#system "sudo cpufreq-set -c #{core} --min #{min}Hz --max #{max}Hz -g #{governor}"
+#}
