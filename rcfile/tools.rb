@@ -8,7 +8,7 @@ def export(s)
 
   case @type
   when :fish then
-    "set -U fish_user_paths #{s.strip.gsub("\n", " ")} $fish_user_paths"
+    "set -U fish_user_paths #{s.strip.gsub("\n", " ")}"
   when :zsh then
     "export PATH=#{s.strip.gsub("\n", ":")}:$PATH"
   else
