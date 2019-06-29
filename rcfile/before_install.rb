@@ -26,6 +26,7 @@ unless File.exist?(ENV["VIMRUNTIME"].to_s)
     STDIN.gets.chomp
   }.split("\n").select{|line| line =~ /^(?!.*snap).*vim\d+$/}.first
 
+  puts "$VIMRUNTIME=#{vimruntime}"
   if vimruntime.nil? or vimruntime.empty? then
     $stderr.puts "$VIMRUNTIME is empty"
   end
