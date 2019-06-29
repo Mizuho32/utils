@@ -4,6 +4,7 @@ function fish_prompt
     # else
     #  retc = red
     and set retc green; or set retc red
+    set prev $status
 
     # current dir
     echo
@@ -48,6 +49,7 @@ function fish_prompt
     else
         echo -n ' $'
     end
+    echo -n $prev
 
     # if tty includes "tty" then tty="tty"
     # else tty="pts"
@@ -56,9 +58,11 @@ function fish_prompt
     if [ $tty = tty ]
         echo -n "X//>"
     else
-        echo -n "🐡 "
+        #echo -n "🐡 "
+        #echo -ns \u2FC2 ' '
+        echo -ns '=>> '
     end
-
+    set_color normal
 
     # show time
     #set_color normal
