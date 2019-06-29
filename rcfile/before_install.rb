@@ -25,12 +25,14 @@ unless File.exist?(ENV["VIMRUNTIME"].to_s)
     print "Where is vim runtime dir? >>"
     STDIN.gets.chomp
   }.split("\n").select{|line| line =~ /^(?!.*snap).*vim\d+$/}.first
-
-  puts "$VIMRUNTIME=#{vimruntime}"
-  if vimruntime.nil? or vimruntime.empty? then
-    $stderr.puts "$VIMRUNTIME is empty"
-  end
+else
+  vimruntime = ENV["VIMRUNTIME"].to_s
 end
+
+if vimruntime.nil? or vimruntime.empty? then
+  $stderr.puts "$VIMRUNTIME is empty"
+end
+puts "$VIMRUNTIME=#{vimruntime}"
 
 # Download fish completions
 Dir::mkdir(rcfile_path+"fish/completions/") unless File.exist?(rcfile_path+"fish/completions/")
@@ -51,6 +53,10 @@ loc[:type][:sym]
 # tmux prefix-key
 key = File.read(rcfile_path + "../tmux/tmux.conf")[/prefix\s+C-(\w)/, 1]
 puts "tmux key if #{key}"
+
+# Clone theme-bobthefish
+system('git clone https://github.com/oh-my-fish/theme-bobthefish fish/theme-bobthefish') unless File.exist?(rcfile_path+"fish/theme-bobthefish/")
+
 
 # rcfile generaion
 {

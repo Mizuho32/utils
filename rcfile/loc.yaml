@@ -5,6 +5,8 @@
     :config.fish:                 :".config/fish/config.fish"
     :fish/fish_prompt.fish:       :".config/fish/functions/fish_prompt.fish"
     :fish/fish_right_prompt.fish: :".config/fish/functions/fish_right_prompt.fish"
+    :"fish/theme-bobthefish/functions/__bobthefish_colors.fish": :".config/fish/functions/__bobthefish_colors.fish"
+    :"fish/theme-bobthefish/functions/__bobthefish_glyphs.fish": :".config/fish/functions/__bobthefish_glyphs.fish"
     :"fish/fish_logo/functions/fish_logo.fish": :".config/fish/functions/fish_logo.fish"
     :"fish/fish_greeting.fish":             :".config/fish/functions/fish_greeting.fish"
     :"fish/completions/bundle.fish":        :".config/fish/completions/bundle.fish"
