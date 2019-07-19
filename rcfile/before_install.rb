@@ -35,6 +35,7 @@ end
 puts "$VIMRUNTIME=#{vimruntime}"
 
 # Download fish completions
+if system("which fish") then
 Dir::mkdir(rcfile_path+"fish/completions/") unless File.exist?(rcfile_path+"fish/completions/")
 
 version = `fish --version`[/(\d\.\d\.\d)/, 1]
@@ -49,6 +50,7 @@ loc[:type][:sym]
     url = "#{base}#{filename}"
     File.write(rcfile_path+"fish/completions/#{filename}", open(url).read) unless File.exist?(rcfile_path+"fish/completions/#{filename}")
   }
+end
 
 # tmux prefix-key
 key = File.read(rcfile_path + "../tmux/tmux.conf")[/prefix\s+C-(\w)/, 1]
