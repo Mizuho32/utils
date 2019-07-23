@@ -1,3 +1,5 @@
 zshrc
 config.fish
 fish/fish_logo/
+fish/completions/
+fish/theme-bobthefish/
