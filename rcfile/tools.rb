@@ -8,7 +8,7 @@ def export(s)
 
   case @type
   when :fish then
-    "set -U fish_user_paths #{s.strip.gsub("\n", " ")} $fish_user_paths"
+    "set -U fish_user_paths #{s.strip.gsub("\n", " ")}"
   when :zsh then
     "export PATH=#{s.strip.gsub("\n", ":")}:$PATH"
   else
@@ -29,6 +29,7 @@ end
 
 def to_fish(rc)
   bchar = /(?:\s|[^#\w])/
+  alp   = /a-zA-Z/
   rc
     .gsub(/^(#{bchar}*)export\s+([^=#]+)=(.+)$/, '\1set -x \2 \3') # convert export
     .gsub(/\$\{([^\{\}]+)\}/, '$\1')                               # ${var} -> $var
@@ -47,6 +48,8 @@ def to_fish(rc)
           .gsub(/(\s+)\|\|(\s+)/, '\1; or\2')                      # || -> or
       elsif line =~ /^(\s+)*read\s+(\w+)\\\?(.+)$/ then          # read command
         "#{$1}read -P #{$3} #{$2}\n"                               # read -P
+      elsif line =~ /^(\s*alias\s+[^=]+=[^=]+)$/ then            # alias
+        "#{$1}"                                                    # no modify
       elsif line !~ /if/ then                                    # not line of if
         line.gsub(/^(#{bchar}+)?([^=#]+)=(.+)$/, '\1set \2 \3')    # assign
       else
