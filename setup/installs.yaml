@@ -6,7 +6,7 @@
   - tmux
   - tig
   - tig-colors-neonwolf
-  - docky
+# - docky
 # - terminator
 # - gnome-system-monitor
 # - libsecret
@@ -30,7 +30,7 @@
   - cpupower
 # - compiz
 # - emerald
-  - bat
+# - bat
   - thunar
   - gvfs
   - gvfs-mtp
@@ -53,7 +53,7 @@
   - file-roller
   - unzip-iconv
   - vivaldi-codecs-ffmpeg-extra-bin
-  - cheat-git
+# - cheat-git
   - simplescreenrecorder
   - xl2tpd
   - networkmanager-l2tp
