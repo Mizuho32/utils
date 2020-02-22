@@ -17,6 +17,7 @@
   - htop
   - x11vnc
   - krdc
+  - otf-fira-code
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
