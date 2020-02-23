@@ -13,6 +13,11 @@ set backspace=indent,eol,start
 "http://note.kurodigi.com/archlinux-vimclipboard/
 "set clipboard=unnamedplus
 
+
+" Too long line may make vim slower, because of work of syntax highlighting.
+" Lower limit of column number to be highlighted can make vim faster.
+set synmaxcol=1000
+
 source $VIMRUNTIME/macros/matchit.vim
 "https://stackoverflow.com/questions/7281459/matchit-not-working
 filetype plugin on
