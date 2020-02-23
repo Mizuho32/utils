@@ -17,7 +17,6 @@
   - htop
   - x11vnc
   - krdc
-  - otf-fira-code
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -60,3 +59,4 @@
   - networkmanager-l2tp
   - tree
   - xdg-user-dirs-gtk
+  - nerd-fonts-fira-code
