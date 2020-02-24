@@ -17,6 +17,7 @@
   - htop
   - x11vnc
   - krdc
+  - mousepad
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
