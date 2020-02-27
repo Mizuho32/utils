@@ -62,3 +62,9 @@
   - xdg-user-dirs-gtk
   - nerd-fonts-fira-code
   - nm-connection-editor
+  - exa
+  - bat
+  - hexyl
+  - fd
+  - procs
+  - ripgrep
