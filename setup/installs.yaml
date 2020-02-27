@@ -69,3 +69,5 @@
   - procs
   - ripgrep
   - net-tools
+  - dnsutils
+  - uucp
