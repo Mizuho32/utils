@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+list=`cat /proc/acpi/wakeup | grep enable`
+        .split("\n")
+        .map{|l| l[/(\w+)\s+/, 1] }
+p list
+
+list.each{|l|
+  `echo #{l} | sudo tee  /proc/acpi/wakeup`
+}
