@@ -71,3 +71,5 @@
   - net-tools
   - dnsutils
   - uucp
+:develop:
+  - cutecom
