@@ -73,5 +73,6 @@
   - dnsutils
   - uucp
   - opera-ffmpeg-codecs
+  - ventoy
 :develop:
   - cutecom
