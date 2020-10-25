@@ -18,6 +18,7 @@
   - x11vnc
   - krdc
   - mousepad
+  - opera
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -71,5 +72,6 @@
   - net-tools
   - dnsutils
   - uucp
+  - opera-ffmpeg-codecs
 :develop:
   - cutecom
