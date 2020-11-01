@@ -76,5 +76,7 @@
   - ventoy
   - fcitx-im
   - fcitx-mozc
+  - firefox-i18n-ja
+  - kde-gtk-config
 :develop:
   - cutecom
