@@ -17,7 +17,8 @@
   - htop
   - x11vnc
   - krdc
-  - otf-fira-code
+  - mousepad
+  - opera
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -60,3 +61,18 @@
   - networkmanager-l2tp
   - tree
   - xdg-user-dirs-gtk
+  - nerd-fonts-fira-code
+  - nm-connection-editor
+  - exa
+  - bat
+  - hexyl
+  - fd
+  - procs
+  - ripgrep
+  - net-tools
+  - dnsutils
+  - uucp
+  - opera-ffmpeg-codecs
+  - ventoy
+:develop:
+  - cutecom
