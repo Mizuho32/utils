@@ -74,5 +74,7 @@
   - uucp
   - opera-ffmpeg-codecs
   - ventoy
+  - fcitx-im
+  - fcitx-mozc
 :develop:
   - cutecom
