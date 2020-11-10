@@ -78,5 +78,7 @@
   - fcitx-mozc
   - firefox-i18n-ja
   - kde-gtk-config
+  - kcm-fcitx
+  - julia
 :develop:
   - cutecom
