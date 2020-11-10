@@ -54,7 +54,8 @@
   - xsel
   - file-roller
   - unzip-iconv
-  - vivaldi-codecs-ffmpeg-extra-bin
+# - vivaldi-snapshot
+# - vivaldi-snapshot-ffmpeg-codecs
 # - cheat-git
   - simplescreenrecorder
   - xl2tpd
