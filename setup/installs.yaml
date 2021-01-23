@@ -54,8 +54,8 @@
   - xsel
   - file-roller
   - unzip-iconv
-# - vivaldi-snapshot
-# - vivaldi-snapshot-ffmpeg-codecs
+  - vivaldi
+  - vivaldi-ffmpeg-codecs
 # - cheat-git
   - simplescreenrecorder
   - xl2tpd
@@ -75,7 +75,7 @@
   - uucp
   - opera-ffmpeg-codecs
   - ventoy
-  - fcitx-im
+  - fcitx
   - fcitx-mozc
   - firefox-i18n-ja
   - kde-gtk-config
