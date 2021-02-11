@@ -19,6 +19,7 @@
   - krdc
   - mousepad
   - opera
+  - gimp
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
