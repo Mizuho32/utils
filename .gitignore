@@ -35,7 +35,7 @@ Gemfile.lock
 .rvmrc
 
 # configs
-*.yaml
+#*.yaml
 *.json
 
 vendor/
