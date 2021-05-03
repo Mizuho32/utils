@@ -81,5 +81,6 @@
   - kde-gtk-config
   - kcm-fcitx
   - julia
+  - tldr
 :develop:
   - cutecom
