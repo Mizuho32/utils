@@ -83,5 +83,6 @@
   - julia
   - tldr
   - iscan-plugin-perfection-v370
+  - sidekick-browser-stable-bin
 :develop:
   - cutecom
