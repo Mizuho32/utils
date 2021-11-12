@@ -38,7 +38,7 @@ puts "$VIMRUNTIME=#{vimruntime}"
 Dir::mkdir(rcfile_path+"fish/completions/") unless File.exist?(rcfile_path+"fish/completions/")
 
 version = `fish --version`[/(\d\.\d\.\d)/, 1]
-base = "https://raw.githubusercontent.com/fish-shell/fish-shell/Integration_#{version}/share/completions/"
+base = "https://raw.githubusercontent.com/fish-shell/fish-shell/#{version}/share/completions/"
 
 loc = YAML.load_file(rcfile_path + "loc.yaml")
 loc[:type][:sym]
