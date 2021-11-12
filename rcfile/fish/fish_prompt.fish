@@ -79,16 +79,16 @@ function fish_prompt
     #echo -n (date +%X)
     #set_color -o green
     #echo -n ]
-    
+
     # Check if acpi exists
     if not set -q __fish_nim_prompt_has_acpi
-    	if type acpi > /dev/null ^ /dev/null
-    		set -g __fish_nim_prompt_has_acpi ''
-    	else
-    		set -g __fish_nim_prompt_has_acpi '' # empty string
-    	end
+      if type acpi > /dev/null 2> /dev/null
+        set -g __fish_nim_prompt_has_acpi ''
+      else
+        set -g __fish_nim_prompt_has_acpi '' # empty string
+      end
     end
-    	
+
     if test "$__fish_nim_prompt_has_acpi"
       if [ (acpi -a 2> /dev/null | grep off) ]
         echo -n '─['
