@@ -47,7 +47,7 @@ loc[:type][:sym]
   .map{|match| match[:filename] }
   .each{|filename|  
     url = "#{base}#{filename}"
-    File.write(rcfile_path+"fish/completions/#{filename}", open(url).read) unless File.exist?(rcfile_path+"fish/completions/#{filename}")
+    File.write(rcfile_path+"fish/completions/#{filename}", URI.open(url).read) unless File.exist?(rcfile_path+"fish/completions/#{filename}")
   }
 
 # tmux prefix-key

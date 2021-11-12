@@ -36,7 +36,7 @@ i.each{ |cmd| system cmd } if i
 r = exclude_files(y[:type]).map{|type, loc|
   begin
 
-    send("#{mode}_#{type}", *[{
+    send("#{mode}_#{type}", *[**{
       loc:    loc,
       bk_dir: "backups",
       bk_lst: "backups.yaml",
