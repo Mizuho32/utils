@@ -361,7 +361,7 @@ function fish_right_prompt -d 'git right prompt'
   #echo -n $left_black_arrow_glyph
 
   # VCS
-  git rev-parse --show-toplevel > /dev/null ^ /dev/null
+  git rev-parse --show-toplevel > /dev/null 2> /dev/null
   if [ "$status" = "0" ]
     __bobthefish_prompt_git $git_root_dir $real_pw
   end
