@@ -2,3 +2,4 @@
   :sym:
     :cpuset:     :"bin/cpuset"
     :noresume:   :"bin/noresume"
+    :autostart.sh:   :"bin/autostart.sh"
