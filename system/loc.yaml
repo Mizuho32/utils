@@ -1,3 +1,3 @@
 :type:
   :sym:
-    :Xsetup:     :"/usr/share/sddm/scripts/Xsetup"
+    #:Xsetup:     :"/usr/share/sddm/scripts/Xsetup"
