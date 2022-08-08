@@ -15,3 +15,4 @@ konsole &
 sleep 1
 
 pacmd load-module module-loopback latency_msec=5
+mount $HOME/media/mizuho
