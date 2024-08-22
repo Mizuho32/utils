@@ -11,16 +11,19 @@
 # - gnome-system-monitor
 # - libsecret
 # - netrc
-  - lastpass-cli
-  - gitlastpass
+# - lastpass-cli
+# - gitlastpass
   - git-branch-status
   - htop
   - x11vnc
   - krdc
   - mousepad
-  - opera
+# - opera
   - gimp
+  - obsidian
+  - code
 :ubuntu:
+
   - &be build-essential
   - vivaldi-repo
   - vivaldi-stable
@@ -33,7 +36,6 @@
   - cpupower
 # - compiz
 # - emerald
-# - bat
   - thunar
   - gvfs
   - gvfs-mtp
@@ -45,7 +47,7 @@
   - sshfs
   - lsof
   - iotop
-  - kwallet-pam
+# - kwallet-pam
 # - linux-lts
   - otf-takao
   - otf-ipafont
@@ -59,11 +61,10 @@
   - vivaldi-ffmpeg-codecs
 # - cheat-git
   - simplescreenrecorder
-  - xl2tpd
-  - networkmanager-l2tp
+# - xl2tpd
+# - networkmanager-l2tp
   - tree
   - xdg-user-dirs-gtk
-  - nerd-fonts-fira-code
   - nm-connection-editor
   - exa
   - bat
@@ -74,16 +75,18 @@
   - net-tools
   - dnsutils
   - uucp
-  - opera-ffmpeg-codecs
+# - opera-ffmpeg-codecs
   - ventoy
-  - fcitx
-  - fcitx-mozc
+  - fcitx5
+  - fcitx5-mozc
   - firefox-i18n-ja
   - kde-gtk-config
   - kcm-fcitx
-  - julia
+# - julia
   - tldr
-  - iscan-plugin-perfection-v370
-  - sidekick-browser-stable-bin
+# - iscan-plugin-perfection-v370
+# - sidekick-browser-stable-bin
+  - ttf-firacode-nerd
 :develop:
   - cutecom
+  - base-devel
