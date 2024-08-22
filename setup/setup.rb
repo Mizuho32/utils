@@ -48,7 +48,7 @@ def sys_install(name)
   $?
 end
 
-installs = YAML.load_file "installs.yaml"
+installs = YAML.safe_load_file("installs.yaml", permitted_classes: [Symbol], aliases: true)
 
 cand = [%w[apt install], %w[apt-get install], %w[yum install], %w[yay -S]]
 
