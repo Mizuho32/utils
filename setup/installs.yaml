@@ -2,7 +2,7 @@
   - fish
 # - zsh
   - git
-  - gvim
+  - neovim
   - tmux
   - tig
   - tig-colors-neonwolf
@@ -16,20 +16,21 @@
   - git-branch-status
   - htop
   - x11vnc
-  - krdc
-  - mousepad
+  - curl
+# - krdc
+# - mousepad
 # - opera
-  - gimp
-  - obsidian
-  - code
+# - gimp
+# - obsidian
+# - code
 :ubuntu:
 
-  - &be build-essential
-  - vivaldi-repo
-  - vivaldi-stable
+# - &be build-essential
+# - vivaldi-repo
+# - vivaldi-stable
 :debian:
-  - *be
-  - less
+# - *be
+# - less
 :archlinux:
   - yay
 # - aurman

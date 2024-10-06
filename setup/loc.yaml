@@ -7,3 +7,4 @@
     :"custom/git-credential-netrc":  "bin/git-credential-netrc"
 :before_install:
  - "./setup.rb"
+ - "./docker.sh"
