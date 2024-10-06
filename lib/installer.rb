@@ -22,6 +22,7 @@ def update_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
       STDERR.puts "#{target_path} doesn't exist!!"
       print "update? >>"
       if STDIN.gets.chomp =~ /^y/ then
+        FileUtils.mkdir_p(File.dirname(target_path)) if not File.exists?(File.dirname(target_path))
         FileUtils.symlink(source_path, target_path)
       else
         next
