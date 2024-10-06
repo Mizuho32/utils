@@ -1,3 +1,4 @@
 :type:
   :sym:
-   :vimrc: :".vimrc"
+#  :vimrc: :".vimrc"
+   :vimrc: :".config/nvim/init.vim"
