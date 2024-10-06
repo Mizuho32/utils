@@ -22,7 +22,7 @@ alias sl="sl -e"
 alias LS="sl"
 alias xcopy="ruby -e 'print gets.strip' | xsel --clipboard --input"
 alias xpaste='xsel --clipboard --output'
-alias ls="exa -F"
+# alias ls="exa -F"
 
 <%= cstm %>
 
@@ -30,15 +30,15 @@ alias ls="exa -F"
 # Scp block avoid
 if [ -t 0 ]; then
 
-# Set DISPLAY ENV?
-if [ "${SSH_CLIENT}" != "" ]; then
-  echo ""
-  read input\?'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
-
-  if [ "${input}" != "n" -a "${input}" != "" ]; then
-    export DISPLAY="localhost:${input}.0"
-  fi
-fi
+# # Set DISPLAY ENV?
+# if [ "${SSH_CLIENT}" != "" ]; then
+#   echo ""
+#   read input\?'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
+# 
+#   if [ "${input}" != "n" -a "${input}" != "" ]; then
+#     export DISPLAY="localhost:${input}.0"
+#   fi
+# fi
 
 # Tmux select
 if  [ -z "$TMUX" ]; then
