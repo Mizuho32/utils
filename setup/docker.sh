@@ -20,6 +20,8 @@ curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-contai
  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 fi
 
-sudo apt update
-sudo apt-get install -y nvidia-container-toolkit
-sudo systemctl restart docker
+if ! [ $(which nvidia-ctk) ]; then
+  sudo apt update
+  sudo apt-get install -y nvidia-container-toolkit
+  sudo systemctl restart docker
+fi
