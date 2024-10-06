@@ -24,7 +24,8 @@
 # - obsidian
 # - code
 :ubuntu:
-
+  - bat
+  - mosh
 # - &be build-essential
 # - vivaldi-repo
 # - vivaldi-stable
