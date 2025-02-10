@@ -3,3 +3,4 @@
     :cpuset:     :"bin/cpuset"
     :noresume:   :"bin/noresume"
     :autostart.sh:   :"bin/autostart.sh"
+    :cm106/cm106.sh:   :"bin/cm106_on"
