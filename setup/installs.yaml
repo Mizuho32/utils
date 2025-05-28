@@ -22,6 +22,9 @@
   - gimp
   - obsidian
   - code
+  - lolcat
+  - sl
+  - git-delta
 :ubuntu:
 
   - &be build-essential
