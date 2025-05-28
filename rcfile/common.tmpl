@@ -1,3 +1,4 @@
+<%= cstm_head %>
 
 # export
 export GIT_EDITOR=vim
@@ -5,7 +6,9 @@ export VIM=<%= vim %>
 export VIMRUNTIME=<%= vimruntime %>
 export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
 export NAS=$HOME/media/nas
+export PRJ=$HOME/media/nas/prjs
 export Reality=$NAS/Music/VtuberSongs/Reality
+export CHEAT_CMD_PATH="$NAS/Documents/obsidian/Projects/LinuxCommandsCheatSheet/Cheat Sheet.md"
 ## for pyenv
 export CONFIGURE_OPTS="--enable-shared" 
 
@@ -13,10 +16,10 @@ export CONFIGURE_OPTS="--enable-shared"
 <%=
 export <<-"PATH"
 $HOME/bin
-$HOME/.gem/ruby/3.0.0/bin
-/opt/cuda/bin
 PATH
 %>
+# $HOME/.local/share/gem/ruby/3.3.0/bin/
+# /opt/cuda/bin
 
 # alias
 alias open="xdg-open"
