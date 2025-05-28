@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+SHELL=/opt/gentoo_prefix/x86_64/bin/fish
+/opt/gentoo_prefix/x86_64/usr/bin/env -i HOME=$HOME TERM=$TERM USER=$USER SHELL=$SHELL DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY $SHELL -l
+
