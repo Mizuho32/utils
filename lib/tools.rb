@@ -8,7 +8,8 @@ def export(s)
 
   case @type
   when :fish then
-    "set -U fish_user_paths #{s.strip.gsub("\n", " ")}"
+    #"set -U fish_user_paths #{s.strip.gsub("\n", " ")}"
+    "set -x PATH #{s.strip.gsub("\n", " ")} $PATH"
   when :zsh then
     "export PATH=#{s.strip.gsub("\n", ":")}:$PATH"
   else
@@ -62,8 +63,15 @@ def to_zsh(rc)
   rc
 end
 
-def custom(cstm)
-  @b.local_variable_set(:cstm, cstm.strip)
+def custom(cstm=nil, **named_cstm)
+  if cstm then
+    named_cstm = {cstm: cstm, cstm_head: ''}
+  end
+
+  named_cstm.each { |location, content|
+    @b.local_variable_set(location, content.strip)
+  }
+
   common  = ERB.new(File.read("common.tmpl")).result(@b)
   final   = send(%{to_#{@type}}, *[common])
 end
