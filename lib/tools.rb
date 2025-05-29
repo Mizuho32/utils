@@ -47,6 +47,8 @@ def to_fish(rc)
           .gsub(/(\s+)!(\s+)/, '\1not\2')                          # ! -> not
           .gsub(/(\s+)&&(\s+)/, '\1; and\2')                       # && -> and
           .gsub(/(\s+)\|\|(\s+)/, '\1; or\2')                      # || -> or
+      elsif line =~ /^(#{bchar}*)set -x/ then                    # export
+        line.gsub(?:, ' ')
       elsif line =~ /^(\s+)*read\s+(\w+)\\\?(.+)$/ then          # read command
         "#{$1}read -P #{$3} #{$2}\n"                               # read -P
       elsif line =~ /^(\s*alias\s+[^=]+=[^=]+)$/ then            # alias
