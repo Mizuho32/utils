@@ -46,6 +46,11 @@ end
 CUSTOM
 ), cstm: (<<-"CUSTOM"
 
+# completions
+for name in yay bat fd yt-dlp
+  source /usr/share/fish/vendor_completions.d/$name.fish
+end
+
 # misc
 set -x MISE_DATA_DIR $HOME/media/data/mise
 mise activate fish | source

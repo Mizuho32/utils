@@ -31,6 +31,11 @@ alias ls="exa -gF"
 
 <%= cstm %>
 
+# if not interactive shell
+if ! [ -t 0 ]; then
+  export PATH=$PATH:$MISE_DATA_DIR/shims
+fi
+
 #################### ssh Login prompt #####################
 # Scp block avoid
 if [ -t 0 ]; then
