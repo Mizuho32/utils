@@ -1,7 +1,8 @@
 :type:
   :sym:
-    :cpuset:     :"bin/cpuset"
-    :noresume:   :"bin/noresume"
-    :autostart.sh:   :"bin/autostart.sh"
-    :cm106/cm106.sh:   :"bin/cm106_on"
-    :startprefix:   :"bin/startprefix"
+    :cpuset:          :"bin/cpuset"
+    :noresume:        :"bin/noresume"
+    :autostart.sh:    :"bin/autostart.sh"
+    :cm106/cm106.sh:  :"bin/cm106_on"
+    :startprefix:     :"bin/startprefix"
+    :endprefix:       :"bin/endprefix"

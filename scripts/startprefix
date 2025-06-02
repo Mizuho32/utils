@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
-SHELL=/opt/gentoo_prefix/x86_64/bin/fish
-/opt/gentoo_prefix/x86_64/usr/bin/env -i HOME=$HOME TERM=$TERM USER=$USER SHELL=$SHELL DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY $SHELL -l
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+printenv | sed 's/^/export /' > $SCRIPT_DIR/systemenv.sh
 
+SHELL=/opt/gentoo_prefix/x86_64/bin/fish
+/opt/gentoo_prefix/x86_64/usr/bin/env -i \
+  HOME=$HOME TERM=$TERM USER=$USER SHELL=$SHELL DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY \
+  XDG_DATA_DIRS=$XDG_DATA_DIRS \
+  $SHELL -l
