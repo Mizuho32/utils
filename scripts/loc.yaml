@@ -6,3 +6,6 @@
     :cm106/cm106.sh:  :"bin/cm106_on"
     :startprefix:     :"bin/startprefix"
     :endprefix:       :"bin/endprefix"
+    :sys-env:         :"bin/sys-env"
+    :backuppers/backupper.service: :".config/systemd/user/backupper.service"
+    :backuppers/backupper.timer:   :".config/systemd/user/backupper.timer"

@@ -1,0 +1,15 @@
+[Unit]
+Description=Backupper schedule task
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=180min
+Persistent=true
+
+[Install]
+WantedBy=default.target  # ← ユーザーログイン中の target
+
+# systemctl --user start backupper.timer
+# systemctl --user is-enabled backupper.timer
+# systemctl --user list-timers
+
