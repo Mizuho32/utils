@@ -31,7 +31,7 @@ if !(timedelta > interval) then
   exit 0
 end
 
-puts "Start backupper #{Time.now.iso8601}"
+
 result = config[:paths].map{|path, cmd|
   fullpath = home / path.to_s
   Dir::chdir(fullpath)
@@ -44,7 +44,12 @@ result = config[:paths].map{|path, cmd|
 ---"""
 }.join("\n")
 
-puts "Results:\n#{result}"
+puts """## Backupper #{Time.now.iso8601}
+**Results:**
+```
+#{result}
+```
+"""
 
 
 # last time cache
