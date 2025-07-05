@@ -26,7 +26,6 @@
   - sl
   - git-delta
 :ubuntu:
-
   - &be build-essential
   - vivaldi-repo
   - vivaldi-stable
@@ -96,3 +95,5 @@
 :develop:
   - cutecom
   - base-devel
+:emerge:
+  - app-misc/trash-cli
