@@ -47,7 +47,8 @@ CUSTOM
 ), cstm: (<<-"CUSTOM"
 
 # completions
-for name in yay bat fd yt-dlp
+for name in docker
+  #source /opt/gentoo_prefix/x86_64/usr/share/fish/vendor_completions.d/$name.fish
   source /usr/share/fish/vendor_completions.d/$name.fish
 end
 
