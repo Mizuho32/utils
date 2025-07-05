@@ -23,6 +23,9 @@
 # - gimp
 # - obsidian
 # - code
+  - lolcat
+  - sl
+  - git-delta
 :ubuntu:
   - bat
   - mosh
@@ -33,6 +36,8 @@
 # - *be
 # - less
 :archlinux:
+  - bottom
+  - blueman
   - yay
 # - aurman
   - cpupower
@@ -84,6 +89,7 @@
   - firefox-i18n-ja
   - kde-gtk-config
   - kcm-fcitx
+  - keyd
 # - julia
   - tldr
 # - iscan-plugin-perfection-v370

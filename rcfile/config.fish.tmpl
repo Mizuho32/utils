@@ -39,12 +39,26 @@ set fish_pager_color_description B3A06D
 set fish_pager_color_prefix white --bold --underline
 set fish_pager_color_progress white --background=cyan
 
+<%= custom cstm_head: (<<-"CUSTOM"
+if string match -q "/opt/gentoo_prefix/*" $SHELL
+  source /opt/gentoo_prefix/x86_64/etc/profile.env
+end
+CUSTOM
+), cstm: (<<-"CUSTOM"
 
-<%= custom <<-"CUSTOM"
+# completions
+for name in yay bat fd yt-dlp
+  source /usr/share/fish/vendor_completions.d/$name.fish
+end
+
+# misc
+set -x MISE_DATA_DIR $HOME/media/data/mise
+mise activate fish | source
+mise completion fish | source
 
 # asdf
-source ~/.asdf/asdf.fish
-source ~/.asdf/completions/asdf.fish
+# source ~/.asdf/asdf.fish
+# source ~/.asdf/completions/asdf.fish
 
 # pyenv
 # pyenv init - | source
@@ -53,4 +67,5 @@ source ~/.asdf/completions/asdf.fish
 abbr pay 'yay --pacman powerpill'
 
 CUSTOM
+)
 %>

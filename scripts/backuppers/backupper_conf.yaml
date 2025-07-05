@@ -1,0 +1,3 @@
+:interval: 1 # days
+:paths:
+  :media/nas/prjs/RubyTools/youtube-list: 'bash backup.sh'
