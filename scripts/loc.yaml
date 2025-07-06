@@ -7,5 +7,6 @@
     :startprefix:     :"bin/startprefix"
     :endprefix:       :"bin/endprefix"
     :sys-env:         :"bin/sys-env"
+    :mount-code:      :"bin/mount-code"
     :backuppers/backupper.service: :".config/systemd/user/backupper.service"
     :backuppers/backupper.timer:   :".config/systemd/user/backupper.timer"

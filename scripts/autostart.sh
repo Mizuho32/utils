@@ -25,3 +25,4 @@ sleep 1
 
 
 #mount $HOME/media/mizuho
+$HOME/prjs/bin/mount-unionfs.sh
