@@ -1,4 +1,5 @@
 :clipboard: >
-  bind-key -T copy-mode-vi Enter send -X copy-pipe-and-cancel "cat | xsel -i --clipboard"
+  bind-key -T copy-mode-vi Enter send -X copy-pipe-and-cancel "cat | $HOME/media/nas/prjs/RubyTools/share_tmux_copy/client.rb '$SSH_CLIENT' | xsel -i --clipboard"
+
 :block_selection: >
   bind-key -T copy-mode-vi 'C-v' send -X rectangle-toggle
