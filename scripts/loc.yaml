@@ -1,3 +1,12 @@
 :type:
   :sym:
-    :cpuset:     :"bin/cpuset"
+    :cpuset:          :"bin/cpuset"
+    :noresume:        :"bin/noresume"
+    :autostart.sh:    :"bin/autostart.sh"
+    :cm106/cm106.sh:  :"bin/cm106_on"
+    :startprefix:     :"bin/startprefix"
+    :endprefix:       :"bin/endprefix"
+    :sys-env:         :"bin/sys-env"
+    :mount-code:      :"bin/mount-code"
+    :backuppers/backupper.service: :".config/systemd/user/backupper.service"
+    :backuppers/backupper.timer:   :".config/systemd/user/backupper.timer"

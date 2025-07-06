@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup entrypoint
+
+[Service]
+Type=oneshot
+ExecStart=bash /home/mizuho/utils/scripts/backuppers/backupper.sh
