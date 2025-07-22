@@ -1,14 +1,21 @@
+require 'pathname'
 require 'open3'
 
-# complement ${HOME}/path if path is relative
-def to_path(str)
+module Util
+  extend self
 
-	if str =~ /^[^\/]/ then
-		"#{ENV["HOME"]}/#{str}"
-	else
-    str.to_s.gsub(/\$\{?([A-Z]+)\}?/){ ENV[$1] }
-	end
+  # complement ${HOME}/path if path is relative
+  def to_path(str)
 
+    # path start without /
+    path = if str =~ /^[^\/\$]/ then
+      "#{ENV["HOME"]}/#{str}"
+    else
+      # Replace env var
+      str.to_s.gsub(/\$\{?([_A-Z]+)\}?/){ ENV[$1] }
+    end
+    return Pathname(path)
+  end
 end
 
 def safe_run_cmd(cmd, &block)
