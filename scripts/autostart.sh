@@ -26,6 +26,3 @@ sleep 1
 
 #mount $HOME/media/mizuho
 $HOME/prjs/bin/mount-unionfs.sh
-
-cd $HOME/prjs/RubyTools/share_tmux_copy
-bash launch.sh
