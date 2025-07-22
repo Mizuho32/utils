@@ -17,7 +17,7 @@ def update_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
       STDERR.puts "#{source_path} doesn't exist!!"
     end
 
-    target_path = to_path(target_name)
+    target_path = Util.to_path(target_name)
     unless File.symlink? target_path then
       STDERR.puts "#{target_path} doesn't exist!!"
       print "update? >>"
@@ -62,7 +62,8 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
 
     loc.inject({}){ |backup, (source_name, target_name)|
 
-      dest = to_path(target_name)
+      dest = Util.to_path(target_name)
+      backup_dir = cur_dir / bk_dir
 
       # backup
       if File.exist? dest then
@@ -91,7 +92,7 @@ end
 
 def uninstall_sym(loc:knil, bk_dir:nil, bk_lst:nil, cur:nil)
 
-  dests = loc.values.map{|t| to_path(t) }
+  dests = loc.values.map{|t| Util.to_path(t) }
   puts "\n#{dests.join("\n")}\n"
 
   print "\033[33mUnInstall\033[0m them? [y/n] >>"
