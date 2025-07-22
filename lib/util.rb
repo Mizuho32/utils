@@ -56,3 +56,9 @@ def exclude_files(type_files)
   ex.each {|type, exc| exc.each{|ex| type_files[type].delete ex}}
   type_files
 end
+
+$rand_chars = [*?0..?9, *?a..?z, *?A..?Z]
+def rand_string(len)
+  rand_chars_len = $rand_chars.size
+  return 0.step(len).map{ $rand_chars[ (rand_chars_len*rand()).floor ] }.join
+end
