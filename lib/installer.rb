@@ -2,6 +2,8 @@ require 'fileutils'
 require 'pathname'
 require 'yaml'
 
+require_relative 'util'
+
 if not defined? DEBUG and ENV.include?("DEBUG")
   DEBUG = true
   ENV["HOME"] = (Pathname(__FILE__).expand_path.dirname + "../home").to_s
@@ -55,10 +57,10 @@ end
       
 
 def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
+  cur_dir = Pathname(cur)
 
   File.write(
-
-    "#{cur}/#{bk_lst}",
+    cur_dir / bk_lst,
 
     loc.inject({}){ |backup, (source_name, target_name)|
 
@@ -66,23 +68,25 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
       backup_dir = cur_dir / bk_dir
 
       # backup
-      if File.exist? dest then
-        FileUtils.mkdir("#{cur}/#{bk_dir}/") unless File.exist? "#{cur}/#{bk_dir}/"
+      if dest.exist? then
+        FileUtils.mkdir(backup_dir) unless backup_dir.exist?
+        backup_name = [dest.basename(dest.extname).to_s, rand_string(4)].join(?_) + dest.extname
         begin
-          FileUtils.mv(dest, "#{cur}/#{bk_dir}/")
-          backup[File.basename(target_name.to_s)] = dest
+          backup_path = backup_dir / backup_name
+          throw RuntimeError.new("#{backup_path} exists!") if backup_path.exist?
+          FileUtils.mv(dest, backup_path)
+          backup[backup_name] = dest.to_s
         rescue ArgumentError => ex
           STDERR.puts "#{__FILE__}:#{__LINE__}:#{ex.message}"
           next backup
         end
       end
 
-
       print "\nInstall #{dest}"
 
-      updir = Pathname(dest).expand_path + "../"
-      FileUtils.mkdir_p(updir) unless File.exist?(updir)
-      FileUtils.symlink("#{cur}/#{source_name}", dest)
+      dest_parent = Pathname(dest).expand_path.parent
+      FileUtils.mkdir_p(dest_parent) unless dest_parent.exist?
+      FileUtils.symlink(cur_dir / source_name.to_s, dest)
     
       backup
     }.to_yaml)
@@ -101,7 +105,10 @@ def uninstall_sym(loc:knil, bk_dir:nil, bk_lst:nil, cur:nil)
   exit unless yn =~ /^y/
 
 
-  dests.each{ |dest| FileUtils.rm(dest) if File.exist?(dest) }
+  dests.each{ |dest|
+    throw RuntimeError.new("#{dest} is not symlink") if !dest.symlink?
+    FileUtils.rm(dest) if dest.exist?
+  }
 
   YAML.load_file("#{cur}/#{bk_lst}").each{ |filename, to|
     FileUtils.mv("#{cur}/#{bk_dir}/#{filename}", to)
