@@ -10,61 +10,61 @@ if not defined? DEBUG and ENV.include?("DEBUG")
   FileUtils.mkdir(ENV["HOME"]) if not File.exists?(ENV["HOME"])
 end
 
-def update_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
+def check_link(cur, source_name, target_name)
+  source_path = Pathname(cur) / source_name.to_s
+  target_path = Util.to_path(target_name)
 
-  loc.each{ |source_name, target_name|
-    source_path = "#{cur}/#{source_name}"
+  return target_path if source_path.exist? && target_path.symlink? && target_path.readlink.exist?
 
-    unless File.exist? source_path then
-      STDERR.puts "#{source_path} doesn't exist!!"
+
+  unless source_path.exist? then
+    STDERR.puts "#{source_path} doesn't exist!!"
+  else
+    return target_path unless target_path.symlink? # source OK, no target
+  end
+
+  return false unless target_path.symlink?
+
+  link = target_path.readlink
+  unless link.exist? then
+    STDERR.puts "link:\n#{target_path} -> #{link}\ndead!"
+    print "remove? >>"
+    if STDIN.gets.chomp =~ /^y/ then
+      FileUtils.rm(target_path)
     end
+  end
 
-    target_path = Util.to_path(target_name)
-    unless File.symlink? target_path then
-      STDERR.puts "#{target_path} doesn't exist!!"
-      print "update? >>"
-      if STDIN.gets.chomp =~ /^y/ then
-        FileUtils.symlink(source_path, target_path)
-      else
-        next
-      end
+  unless link == source_path then
+    STDERR.puts "link path:\n#{target_path} -> #{link}\nand source in loc.yaml:\n#{source_path} does not match!"
+    print "update? >>"
+    if STDIN.gets.chomp =~ /^y/ then
+      FileUtils.rm(target_path) if target_path.symlink?
+      FileUtils.symlink(source_path, target_path)
     end
+  end
 
-    link = File.readlink(target_path)
-    unless File.exist? link then
-
-      STDERR.puts "link:\n#{target_path} -> #{link}\ndead!"
-      print "remove? >>"
-      if STDIN.gets.chomp =~ /^y/ then
-        FileUtils.rm(target_path)
-      end
-
-    end
-
-    unless link == source_path then
-
-      STDERR.puts "link path:\n#{target_path} -> #{link}\nand source in loc.yaml:\n#{source_path} does not match!"
-      print "update? >>"
-      if STDIN.gets.chomp =~ /^y/ then
-        FileUtils.rm(target_path) if symlink?(target_path)
-        FileUtils.symlink(source_path, target_path)
-      end
-
-    end
-  }
+  return false
 end
 
       
 
 def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
   cur_dir = Pathname(cur)
+  backup_yaml_path = cur_dir / bk_lst
+  backup_init = if backup_yaml_path.exist? then YAML.load_file(backup_yaml_path) else {} end
 
   File.write(
-    cur_dir / bk_lst,
+    backup_yaml_path,
 
-    loc.inject({}){ |backup, (source_name, target_name)|
+    loc.inject(backup_init){ |backup, (source_name, target_name)|
+      dest = check_link(cur, source_name, target_name)
+      next backup unless dest
+      if dest.symlink? && (red_link = dest.readlink).exist? then
+        puts("#{dest} -> #{red_link} already exists and alive. Skip")
+        next backup 
+      end
 
-      dest = Util.to_path(target_name)
+      #dest = Util.to_path(target_name)
       backup_dir = cur_dir / bk_dir
 
       # backup

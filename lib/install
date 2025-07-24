@@ -16,13 +16,10 @@ if (dir = ARGV.first.to_s).empty?
 elsif File.exist? "#{dir}/installed"
 
   puts "Already installed"
-  mode = input("Update? [y/n] >>", "y") {|user|
-    if user =~ /^y/i then
-      :update
-    else
-      exit(2)
-    end
+  input("Update? [y/n] >>", "y") {|user|
+    exit(2) unless user =~ /^y/i
   }
+
 end
 
 Dir::chdir(dir)
