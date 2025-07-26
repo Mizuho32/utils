@@ -39,9 +39,9 @@ result = config[:paths].map{|path, cmd|
   [path,  cmd, *ret]
 }.map{|path, cmd, out, err, status|
 """#{ if status.exitstatus.zero? then 'OK' else 'Err!' end} #{cmd} at #{path}
----
+<code>
 #{out}#{err}
----"""
+</code>"""
 }.join("\n")
 
 puts """## Backupper #{Time.now.iso8601}
