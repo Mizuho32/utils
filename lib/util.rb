@@ -46,13 +46,18 @@ end
 
 def exclude_files(type_files)
   ex = {}
-  type_files.each {|type, files|
+  type_files = type_files.map {|type, files|
+    files = files.map{|src, trg|
+      trg = trg.map(&:to_s).join(?/).to_sym if trg.is_a?(Array)
+      [src, trg]
+    }.to_h
     puts "select files to NOT INSTALL for #{type}:"
-    puts files.each_with_index.map {|name, i|
-      "  #{i}: #{name.first} -> #{name.last}"
+    puts files.each_with_index.map {|(src, trg), i|
+      "  #{i}: #{src} -> #{trg}"
     }.join("\n")
     ex[type] = exclude_nums().map{|i| files.keys[i]}
-  }
+    [type, files]
+  }.to_h
   ex.each {|type, exc| exc.each{|ex| type_files[type].delete ex}}
   type_files
 end
