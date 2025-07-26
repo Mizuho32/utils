@@ -44,13 +44,17 @@ def exclude_nums
   return nums
 end
 
+def loc_dearray(loc)
+loc.map{|src, trg|
+  trg = trg.map(&:to_s).join(?/).to_sym if trg.is_a?(Array)
+  [src, trg]
+}.to_h
+end
+
 def exclude_files(type_files)
   ex = {}
   type_files = type_files.map {|type, files|
-    files = files.map{|src, trg|
-      trg = trg.map(&:to_s).join(?/).to_sym if trg.is_a?(Array)
-      [src, trg]
-    }.to_h
+    files = loc_dearray(files)
     puts "select files to NOT INSTALL for #{type}:"
     puts files.each_with_index.map {|(src, trg), i|
       "  #{i}: #{src} -> #{trg}"

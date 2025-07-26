@@ -16,18 +16,17 @@ end
 
 Dir::chdir(dir)
 
-y = YAML.load_file("loc.yaml")
+y = YAML.load_file("loc.yaml", aliases: true)
 i = y.delete :before_uninstall
 f = y.delete :after_uninstall
 
 i.each{ |cmd| system cmd } if i
 
 y[:type].map{|type, loc|
-
   if type == :sym then
 
     uninstall_sym(
-      loc:    loc,
+      loc:    loc_dearray(loc),
       bk_dir: "backups",
       bk_lst: "backups.yaml",
       cur:    Dir::pwd
