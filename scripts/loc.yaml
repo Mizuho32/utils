@@ -9,3 +9,4 @@
     :sys-env:         :"bin/sys-env"
       #:backuppers/backupper.service: :".config/systemd/user/backupper.service"
       #:backuppers/backupper.timer:   :".config/systemd/user/backupper.timer"
+    :ollama/start-ollama.sh:          :"bin/start-ollama"
