@@ -63,6 +63,9 @@
   - unzip-iconv
   - vivaldi
   - vivaldi-ffmpeg-codecs
+  - vlc-plugin-ogg
+  - vlc-plugins-extra
+  - vlc-plugin-ffmpeg
 # - cheat-git
   - simplescreenrecorder
 # - xl2tpd
