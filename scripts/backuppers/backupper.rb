@@ -3,57 +3,80 @@ require 'open3'
 require 'time'
 require 'pathname'
 
-require 'remotestdio'
+begin
+  require 'load_remotestdio'; rescue LoadError
+  $stderr.puts "WARN: No remotestdio"
+end
+
 
 # ARGV conf.yaml
 begin
 
-RemoteSTDIOUtils.init_by_envvar()
 home = Pathname("#{ENV['HOME']}")
-cache_path = home / '.cache/backupper/last.txt'
-config_path = Pathname(ARGV.first)
+cache_path = home / '.cache/backupper/last.yaml'
+config_path = Pathname(ARGV.delete_at(0))
+debug_mode = ENV['DEBUG']
 
-# cache gen or check
-last_time = if not cache_path.exist? then
+# cache dir gen or check
+last_times = if not cache_path.exist? then
   cache_path.dirname.mkdir if not cache_path.dirname.exist?
-  Time.now
+  {}
 else
-  Time.parse(File.read(cache_path))
+  YAML.load_file(cache_path, permitted_classes: [Time, Symbol], aliases: true)
 end
 
 # Check interval
-config = YAML.load_file(config_path)
-interval = config[:interval] * (3600*24) # sec
-starttime = Time.now
-timedelta = starttime - last_time
+config = YAML
+  .load_file(config_path)
+  .then{|conf|
+    global_interval = conf[:interval]
+    conf[:paths] = conf[:paths].map{|path, cmd|
+      next [path, {interval: global_interval, cmd: cmd}] if cmd.is_a? String
+      [path, cmd]
+    }.to_h
+    conf
+  }
 
-if !(timedelta > interval) then
-  exit 0
-end
+current_time = Time.now
+result = config[:paths]
+  .map{|path, cmd_info|
+    interval = cmd_info[:interval] * (3600*24) # sec
+    first_time = last_times[path].nil?
+    last_time = !first_time && last_times[path]
 
+    next nil if !first_time && (current_time - last_time) <= interval
 
-result = config[:paths].map{|path, cmd|
-  fullpath = home / path.to_s
-  Dir::chdir(fullpath)
-  ret = Open3.capture3(cmd)
-  [path,  cmd, *ret]
-}.map{|path, cmd, out, err, status|
+    fullpath = home / path.to_s
+    Dir::chdir(fullpath)
+    cmd = cmd_info[:cmd]
+    cmd = "echo #{cmd} at #{path}" if debug_mode
+    ret = Open3.capture3(cmd)
+    [path,  cmd, *ret]
+  }
+  .compact
+
+result_text = result
+  .map{|path, cmd, out, err, status|
 """#{ if status.exitstatus.zero? then 'OK' else 'Err!' end} #{cmd} at #{path}
 ---
-#{out}#{err}
+#{ "#{out}#{err}".strip }
 ---"""
-}.join("\n")
+  }.join("\n\n")
 
-puts """## Backupper #{Time.now.iso8601}
+unless result.empty?
+  puts """## Backupper #{Time.now.iso8601}
 **Results:**
 <code>
-#{result}
+#{result_text}
 </code>
 """
 
-
-# last time cache
-File.write(cache_path, starttime.iso8601)
+  # last time cache
+  result.each{|path, _|
+    last_times[path] = current_time
+  }
+  File.write(cache_path, last_times.to_yaml)
+end
 rescue StandardError => ex
   puts(ex.message, ex.backtrace.join("\n"))
   exit 1
