@@ -66,9 +66,9 @@ result_text = result
 unless result.empty?
   puts """## Backupper #{Time.now.iso8601}
 **Results:**
-<code>
+````
 #{result_text}
-</code>
+````
 """
 
   # last time cache
