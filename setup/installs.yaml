@@ -94,7 +94,9 @@
   - tldr
 # - iscan-plugin-perfection-v370
 # - sidekick-browser-stable-bin
-  - ttf-firacode-nerd
+# - ttf-firacode-nerd
+  - fira-code
+  - ttf-moralerspace
 :develop:
   - cutecom
   - base-devel
