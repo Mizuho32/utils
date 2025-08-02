@@ -60,6 +60,9 @@ tmp = cand.select{|cmd|
 INSTALL = input(%Q{"#{cmd=tmp.join(" ")}" is your install cmd? %s or Enter your install cmd (e.g. apt-get install) >> }, "yes") {|user|
   if user =~ /^y(?:es)?/i then
     cmd
+  elsif user =~ /^c(?:ancel)?/i then
+    puts "Installation canceled"
+    exit 0
   else
     user
   end
