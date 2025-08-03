@@ -25,6 +25,7 @@
   - lolcat
   - sl
   - git-delta
+  - kitty
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
