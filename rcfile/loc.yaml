@@ -14,6 +14,7 @@
     :"fish/completions/mount.fish":         :".config/fish/completions/mount.fish"
     :"fish/completions/ruby.fish":          :".config/fish/completions/ruby.fish"
     :"fish/completions/systemctl.fish":     :".config/fish/completions/systemctl.fish"
+    :"xprofile":                            :".xprofile"
 :before_install:
 - "./before_install.rb"
 - "./fish/fish_logo_install.bash"
