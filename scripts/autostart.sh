@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-konsole &
+#konsole &
+kitty &
 
 sleep 10
 
