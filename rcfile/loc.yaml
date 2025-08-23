@@ -16,6 +16,7 @@
     :"fish/completions/systemctl.fish":     :".config/fish/completions/systemctl.fish"
     :"xprofile":                            :".xprofile"
     :"kitty.conf":                          :".config/kitty/kitty.conf"
+    :"kde-env/mise.sh":                     :".config/plasma-workspace/env/mise.sh"
 :before_install:
 - "./before_install.rb"
 - "./fish/fish_logo_install.bash"
