@@ -15,7 +15,7 @@ thunar &
 sleep 1
 
 discord &
-viber &
+GTK_IM_MODULE=ibus QT_IM_MODULE=ibus XMODIFIERS=@im=ibus viber &
 sleep 1
 
 # pactl list sources
