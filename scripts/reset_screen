@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# kscreen-doctor -o
+kscreen-doctor output.DP-2-1-1.mode.157
