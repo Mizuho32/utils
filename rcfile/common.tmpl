@@ -9,6 +9,7 @@ export NAS=$HOME/media/nas
 export PRJ=$HOME/media/nas/prjs
 export Reality=$NAS/Music/VtuberSongs/Reality
 export CHEAT_CMD_PATH="$NAS/Documents/obsidian/Projects/LinuxCommandsCheatSheet/Cheat Sheet.md"
+export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
 ## for pyenv
 export CONFIGURE_OPTS="--enable-shared" 
 
@@ -16,6 +17,7 @@ export CONFIGURE_OPTS="--enable-shared"
 <%=
 export <<-"PATH"
 $HOME/bin
+/usr/local/cuda/bin
 PATH
 %>
 # $HOME/.local/share/gem/ruby/3.3.0/bin/
