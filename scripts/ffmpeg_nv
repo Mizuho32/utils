@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+LOCAL=$HOME/.local
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LOCAL/lib $LOCAL/bin/ffmpeg $@
