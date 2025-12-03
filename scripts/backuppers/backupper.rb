@@ -72,9 +72,11 @@ unless result.empty?
 """
 
   # last time cache
-  result.each{|path, _|
-    last_times[path] = current_time
-  }
+  result
+    .select{|path, cmd, out, err, status| status.exitstatus.zero? }
+    .each{|path, _|
+      last_times[path] = current_time
+    }
   File.write(cache_path, last_times.to_yaml)
 end
 rescue StandardError => ex
