@@ -27,6 +27,7 @@
   - sl
   - git-delta
 :ubuntu:
+  - nfs-client
   - bat
   - mosh
 # - &be build-essential
