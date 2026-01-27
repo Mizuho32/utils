@@ -17,6 +17,7 @@
     :"xprofile":                            :".xprofile"
     :"kitty.conf":                          :".config/kitty/kitty.conf"
     :"kde-env/mise.sh":                     :".config/plasma-workspace/env/mise.sh"
+    :"obsidian/user-flags.conf":            :".config/obsidian/user-flags.conf"
 :before_install:
 - "./before_install.rb"
 - "./fish/fish_logo_install.bash"
