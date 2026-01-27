@@ -11,10 +11,10 @@ sleep 1
 # pavucontrol &
 # sleep 1
 
-thunar &
+dolphin &
 sleep 1
 
-discord &
+discord --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-wayland-ime &
 GTK_IM_MODULE=ibus QT_IM_MODULE=ibus XMODIFIERS=@im=ibus viber &
 sleep 1
 
