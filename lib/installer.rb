@@ -106,12 +106,21 @@ def uninstall_sym(loc:knil, bk_dir:nil, bk_lst:nil, cur:nil)
 
 
   dests.each{ |dest|
-    throw RuntimeError.new("#{dest} is not symlink") if !dest.symlink?
-    FileUtils.rm(dest) if dest.exist?
+    if dest.exist? then
+      if dest.symlink? then
+        FileUtils.rm(dest)
+      else
+        warn("WARNING: #{dest} is not symlink! Skip.") if !dest.symlink?
+      end
+    end
   }
 
   YAML.load_file("#{cur}/#{bk_lst}").each{ |filename, to|
-    FileUtils.mv("#{cur}/#{bk_dir}/#{filename}", to)
+    src_path = Pathname("#{cur}/#{bk_dir}/#{filename}")
+
+    next(warn("#{to} already exists! Skip")) if File.exist?(to)
+    next(warn("#{src_path} not exists! Skip")) if !src_path.exist?
+    FileUtils.mv(src_path, to)
   }
 
   FileUtils.rm(bk_lst)
