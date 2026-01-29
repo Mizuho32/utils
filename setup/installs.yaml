@@ -1,11 +1,24 @@
 :common:
-  - fish
-# - zsh
-  - git
-  - gvim
-  - tmux
-  - tig
+# - git
+  - git-branch-status
   - tig-colors-neonwolf
+# - htop
+  - kitty
+# clean
+# - fish
+# - gvim
+# - tmux
+# - tig
+# - git-delta
+# - krdc
+# - mousepad
+# - code
+# - obsidian
+# - lolcat
+# - sl
+# - gimp
+# old
+# - zsh
 # - docky
 # - terminator
 # - gnome-system-monitor
@@ -13,19 +26,24 @@
 # - netrc
 # - lastpass-cli
 # - gitlastpass
-  - git-branch-status
-  - htop
-  - x11vnc
-  - krdc
-  - mousepad
 # - opera
-  - gimp
+# - x11vnc
+:flatpak install:
+  - vivaldi
+  - floorp
+  - audacity
   - obsidian
-  - code
-  - lolcat
-  - sl
-  - git-delta
-  - kitty
+  - zoom
+  - viber
+  - discord
+  - vlc
+  - remmina
+  - mousepad
+  - evince
+  - vscode
+  - org.gtk.Gtk3theme.Breeze-Dark
+  - Adwaita-dark
+  - gimp
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -34,21 +52,19 @@
   - *be
   - less
 :archlinux:
-  - bottom
-  - blueman
+# - blueman
   - yay
-# - aurman
   - cpupower
-# - compiz
-# - emerald
-  - thunar
-  - gvfs
-  - gvfs-mtp
-  - gvfs-smb
-  - thunar-archive-plugin
+# - thunar
+# - gvfs
+# - gvfs-mtp
+# - gvfs-smb
+# - thunar-archive-plugin
 # - thunar-shares-plugin
-  - thunar-volman
-  - tumbler
+# - thunar-volman
+# - tumbler
+  - sl
+  - lolcat
   - sshfs
   - lsof
   - iotop
@@ -57,49 +73,67 @@
   - otf-takao
   - otf-ipafont
   - noto-fonts-cjk 
-  - evince
-  - poppler-data
-  - xsel
-  - file-roller
-  - unzip-iconv
-  - vivaldi
-  - vivaldi-ffmpeg-codecs
-  - vlc-plugin-ogg
-  - vlc-plugins-extra
-  - vlc-plugin-ffmpeg
+# - file-roller
 # - cheat-git
-  - simplescreenrecorder
 # - xl2tpd
 # - networkmanager-l2tp
-  - tree
-  - xdg-user-dirs-gtk
-  - nm-connection-editor
-  - exa
-  - bat
-  - hexyl
-  - fd
-  - procs
-  - ripgrep
+# - xdg-user-dirs-gtk
+# - nm-connection-editor
   - net-tools
   - dnsutils
   - uucp
-# - opera-ffmpeg-codecs
   - ventoy
+# - kde-gtk-config
   - fcitx5
   - fcitx5-mozc
-  - firefox-i18n-ja
-  - kde-gtk-config
-  - kcm-fcitx
+  - kcm-fcitx5
   - keyd
-# - julia
   - tldr
 # - iscan-plugin-perfection-v370
-# - sidekick-browser-stable-bin
-# - ttf-firacode-nerd
-  - fira-code
+  - ttf-fira-code
   - ttf-moralerspace
+  - virtualbox
+# clean
+# - evince
+# - poppler-data
+# - vivaldi
+# - vivaldi-ffmpeg-codecs
+# - vlc-plugin-ogg
+# - vlc-plugins-extra
+# - vlc-plugin-ffmpeg
+# - exa
+# - bat
+# - hexyl
+# - fd
+# - procs
+# - ripgrep
+# - firefox-i18n-ja
+# - julia
+# old
+# - aurman
+# - compiz
+# - emerald
+# - ttf-firacode-nerd
+# - xsel
+# - unzip-iconv
+# - simplescreenrecorder
+# - opera-ffmpeg-codecs
+# - sidekick-browser-stable-bin
 :develop:
   - cutecom
   - base-devel
-:emerge:
+:emerge -u:
   - app-misc/trash-cli
+  - vim
+  - fish
+  - dev-vcs/tig
+  - app-text/tree
+:cargo install:
+  - bat
+  - eza
+  - fd-find
+  - bottom
+  - git-delta
+  - hexyl
+  - procs
+  - ripgrep
