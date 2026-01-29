@@ -4,7 +4,7 @@
     :"custom/tig-colors-neonwolf-256.tigrc": ".tigrc"
 #   :"custom/libsec/git-credential-libsecret":  "bin/git-credential-libsecret"
 #   :"custom/git-credential-lastpass":  "bin/git-credential-lastpass"
-    :"custom/git-credential-netrc":     "bin/git-credential-netrc"
+#   :"custom/git-credential-netrc":     "bin/git-credential-netrc"
     :"fonts.conf":                      ".config/fontconfig/fonts.conf"
 :before_install:
  - "./setup.rb"
