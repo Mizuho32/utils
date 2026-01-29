@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # coding: utf-8
 
+require "pty"
+require "io/console"
 require 'yaml'
 require 'open3'
 
@@ -32,15 +34,18 @@ Enter the cmd name to check installed? >>"""
   end
 end
 
-def sys_install(name)
+def sys_install(name, custom_install_cmd: '')
   name = name.strip
-  existance = check_existance(name)
-  return existance unless existance.nil?
+  if custom_install_cmd.empty? then
+    existance = check_existance(name)
+    return existance unless existance.nil?
+  end
 
   if File.exist? "./custom/#{name}" then
     cmd = "./custom/#{name}"
   else
-    cmd = %Q|#{INSTALL} "#{name}"| 
+    installer = custom_install_cmd.empty? && INSTALL || custom_install_cmd
+    cmd = %Q|#{installer} "#{name}"|
   end
   puts "in #{ENV["PWD"]}, exec #{cmd}"
   system cmd
@@ -48,7 +53,9 @@ def sys_install(name)
   $?
 end
 
-installs = YAML.load_file "installs.yaml"
+if __FILE__ == $PROGRAM_NAME then
+
+installs = YAML.load_file("installs.yaml", permitted_classes: [Symbol], aliases: true)
 
 cand = [%w[apt install], %w[apt-get install], %w[yum install], %w[yay -S]]
 
@@ -97,11 +104,13 @@ LIST
 
 print "\nDistribution dependent\nEnter number >> "
 distri = dists[gets.chomp.to_i]
+puts "#{distri} selected"
 
-unless distri.nil?  then
+unless distri.nil? then
+  distri_str = distri.to_s
    dists = installs[distri].map{|name|
     puts "install #{name}..."
-    r = sys_install(name)
+    r = sys_install(name, custom_install_cmd: distri_str.include?(" ") && distri_str || '')
     if r.last.exitstatus.zero? then
       true
     else
@@ -112,4 +121,6 @@ unless distri.nil?  then
   installs[distri].zip(dists).each{|name,result|
     puts "#{name}\n  #{result.to_s}"
   }
+end
+
 end
