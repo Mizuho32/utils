@@ -29,6 +29,11 @@ end
 config = YAML
   .load_file(config_path)
   .then{|conf|
+    # Envs
+    conf[:envs]&.each{|env_name, env_val| ENV[env_name.to_s] = env_val }
+    conf
+  }
+  .then{|conf|
     global_interval = conf[:interval]
     conf[:paths] = conf[:paths].map{|path, cmd|
       next [path, {interval: global_interval, cmd: cmd}] if cmd.is_a? String
