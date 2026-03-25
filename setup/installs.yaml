@@ -44,6 +44,7 @@
   - org.gtk.Gtk3theme.Breeze-Dark
   - Adwaita-dark
   - gimp
+  - org.sqlitebrowser.sqlitebrowser
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -89,6 +90,7 @@
   - kcm-fcitx5
   - keyd
   - tldr
+  - watchman-bin
 # - iscan-plugin-perfection-v370
   - ttf-fira-code
   - ttf-moralerspace
@@ -128,6 +130,7 @@
   - fish
   - dev-vcs/tig
   - app-text/tree
+  - app-misc/jq
 :cargo install:
   - bat
   - eza
@@ -137,3 +140,5 @@
   - hexyl
   - procs
   - ripgrep
+:npx:
+  - md-review
