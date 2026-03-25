@@ -54,7 +54,7 @@ result = config[:paths]
     fullpath = home / path.to_s
     Dir::chdir(fullpath)
     cmd = cmd_info[:cmd]
-    cmd = "echo #{cmd} at #{path}" if debug_mode
+    cmd = "echo #{cmd}" if debug_mode
     ret = Open3.capture3(cmd)
     [path,  cmd, *ret]
   }
@@ -62,7 +62,8 @@ result = config[:paths]
 
 result_text = result
   .map{|path, cmd, out, err, status|
-"""#{ if status.exitstatus.zero? then 'OK' else 'Err!' end} #{cmd} at #{path}
+    fullpath = home / path.to_s
+"""#{ if status.exitstatus.zero? then 'OK' else 'Err!' end} '#{cmd}' at '#{fullpath}'
 ---
 #{ "#{out}#{err}".strip }
 ---"""
