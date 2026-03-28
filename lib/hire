@@ -45,7 +45,7 @@ dir2files.each{ |target_dir, files|
 
   loc_yaml_path = "#{target_dir}/loc.yaml"
   # like :"plasma-envs/mise.sh":                 :".config/plasma-workspace/env/mise.sh"
-  loc_yaml_delta = results.map{ |file| %Q[    \#:"#{file.basename}"  :"#{file.relative_path_from(HOME)}"] }.join("\n")
+  loc_yaml_delta = results.map{ |file| %Q[    \#:"#{file.basename}":  :"#{file.relative_path_from(HOME)}"] }.join("\n")
 
   unless defined?(DRY_RUN) then
     unless results.empty?
