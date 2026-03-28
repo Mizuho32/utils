@@ -95,6 +95,7 @@
   - ttf-fira-code
   - ttf-moralerspace
   - virtualbox
+  - wl-clipboard
 # clean
 # - evince
 # - poppler-data
