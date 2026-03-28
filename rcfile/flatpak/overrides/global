@@ -1,0 +1,6 @@
+[Environment]
+GTK_THEME=Breeze-Dark
+GTK_APPLICATION_PREFER_DARK_THEME=1
+XMODIFIERS=@im=fcitx
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
