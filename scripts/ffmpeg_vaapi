@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+LOCAL=$HOME/.local/vaapi
+export LD_LIBRARY_PATH=$LOCAL/lib:/usr/local/lib64:/usr/local/lib:$LD_LIBRARY_PATH
+#echo $LD_LIBRARY_PATH
+$LOCAL/bin/ffmpeg "$@"
