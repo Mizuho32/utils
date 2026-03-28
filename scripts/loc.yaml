@@ -12,3 +12,5 @@
     :ollama/start-ollama.sh:          :"bin/start-ollama"
     :ffmpeg_nv:          :"bin/ffmpeg_nv"
     :ffmpeg_vaapi:       :"bin/ffmpeg_va"
+    :ro-env:          :"bin/ro-env"
+    :mount-code:      :"bin/mount-code"

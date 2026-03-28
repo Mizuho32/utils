@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+rw=()
+cmd=()
+
+# "--" までをReadWritePaths、それ以降をコマンド
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --)
+      shift
+      cmd=("$@")
+      break
+      ;;
+    *)
+      rw+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# systemd-run 実行
+args=()
+for p in "${rw[@]}"; do
+  args+=("-p" "ReadWritePaths=$p")
+done
+
+systemd-run -P --user --pty --working-directory=$PWD \
+  -p ProtectSystem=strict \
+  -p BindReadOnlyPaths="$HOME" \
+  "${args[@]}" \
+  "${cmd[@]}"

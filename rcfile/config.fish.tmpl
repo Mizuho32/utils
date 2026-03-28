@@ -69,6 +69,25 @@ mise completion fish | source
 abbr suspend 'sudo systemctl suspend'
 abbr suspend-safe 'memfree && sudo systemctl suspend'
 abbr amd-smi 'sys-env (which amd-smi)'
+abbr mv 'mv -i'
+abbr cp 'cp -i'
+abbr stop 'killall -SIGSTOP'
+abbr resume 'killall -SIGCONT'
+abbr se 'sys-env'
+abbr re 'ro-env'
+abbr be 'bundle exec'
+abbr br 'bundle exec ruby'
+abbr ga 'git add'
+abbr gb 'git branch'
+abbr gc 'git commit -m'
+abbr gd 'git diff'
+abbr gf 'git fetch'
+abbr gp 'git push -u'
+abbr gr 'git remote -v'
+abbr gs 'git status'
+abbr gl 'git log'
+abbr vivaldi 'systemd-run --user --scope -p CPUQuota=200% -p MemoryMax=4G flatpak run com.vivaldi.Vivaldi'
+
 
 CUSTOM
 )

@@ -1,0 +1,5 @@
+[Environment]
+PATH=/app/bin:/app/bin:/app/bin:/usr/bin:/home/mizuho/.var/app/com.visualstudio.code/data/node_modules/bin:/home/mizuho/media/data/mise/shims
+#GTK_IM_MODULE=fcitx
+#QT_IM_MODULE=fcitx
+#XMODIFIERS=@im=fcitx

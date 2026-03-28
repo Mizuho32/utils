@@ -50,6 +50,9 @@ loc[:type][:sym]
     File.write(rcfile_path+"fish/completions/#{filename}", URI.open(url).read) unless File.exist?(rcfile_path+"fish/completions/#{filename}")
   }
 
+# fd-find
+File.write(rcfile_path+"fish/completions/fd.fish", %x|fd --gen-completions=fish|) if system("which fd")
+
 # tmux prefix-key
 key = File.read(rcfile_path + "../tmux/tmux.conf")[/prefix\s+C-(\w)/, 1]
 puts "tmux key if #{key}"
