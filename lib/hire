@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+# coding: utf-8
+
+require 'yaml'
+require 'pathname'
+require 'fileutils'
+
+require_relative 'installer'
+require_relative 'util'
+
+DRY_RUN = true if ENV.include?("DRY_RUN")
+HOME = Pathname(ENV["HOME"])
+
+mode = :hire
+utils_dir = Pathname(__FILE__).expand_path.dirname.parent
+files = ARGV.size.times.inject([]){|acm,_| acm << Pathname(ARGV.shift)}
+
+puts("specify files").then{ exit 1 } if files.size.zero?
+
+file_dir_paris = hire_select_dir(utils_dir, files)
+dir2files = file_dir_paris.group_by{_2}.map{[_1, _2.map(&:first)]}.to_h
+
+# pp dir2files
+
+dir2files.each{ |target_dir, files|
+  results = files.map do |file|
+    target_path = target_dir / file.basename
+    if target_path.exist? then
+      warn("WARNING: #{target_path} already exists! Skip.")
+      next(nil)
+    end
+
+    unless defined?(DRY_RUN)
+      FileUtils.cp(file, target_path, preserve: true)
+    else
+      puts("DRY_RUN: cp #{file} #{target_path}")
+    end
+
+    file
+  rescue StandardError => ex
+    warn("ERROR: #{ex.message}\n#{ex.backtrace.join("\n")}")
+    next(nil)
+  end.compact
+
+
+  loc_yaml_path = "#{target_dir}/loc.yaml"
+  # like :"plasma-envs/mise.sh":                 :".config/plasma-workspace/env/mise.sh"
+  loc_yaml_delta = results.map{ |file| %Q[    \#:"#{file.basename}"  :"#{file.relative_path_from(HOME)}"] }.join("\n")
+
+  unless defined?(DRY_RUN) then
+    unless results.empty?
+      loc_yaml = File.read(loc_yaml_path)
+      File.write(loc_yaml_path, loc_yaml + "\n#{loc_yaml_delta}")
+    else
+      puts "No files to install for #{target_dir}"
+    end
+  else
+    puts "For #{target_dir}, delta is like:", loc_yaml_delta
+  end
+}

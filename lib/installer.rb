@@ -126,3 +126,37 @@ def uninstall_sym(loc:knil, bk_dir:nil, bk_lst:nil, cur:nil)
   FileUtils.rm(bk_lst)
 
 end
+
+
+def hire_select_dir(utils_dir, files)
+  n_files = files.size
+  subdirs = utils_dir.children.select{ _1.directory? && !(_1.basename.to_s.start_with?(".")) && (_1/ 'loc.yaml').exist? }.sort_by(&:to_s)
+
+  loop {
+    puts "\nSelect dirs for files"
+    puts "Files:\n#{files.map{ " #{_1}"}.join("\n")}"
+    puts "Dirs:\n#{subdirs.each_with_index.map{|el, idx| " #{'%2d' % idx}: #{el}"}.join("\n")}"
+
+    dests = gets.chomp.split(/[^0-9]+/).map(&:to_i).map{|i| subdirs[i]}.compact
+    n_dests = dests.size
+    if n_dests.zero? then
+      puts("select at least one dir")
+      next
+    elsif n_dests > n_files then
+      puts("too many dirs selected")
+      next
+    elsif 1 < n_dests && n_dests < n_files then
+      puts("too few dirs selected")
+      next
+    end
+
+    dests = dests * n_files if n_dests == 1
+    pairs = files.zip(dests)
+
+    puts "Selected dirs:\n#{pairs.map{ " #{_1} -> #{_2}"}.join("\n")}"
+    print "OK? [y/n] >>"
+    yn = STDIN.gets.chomp
+
+    return pairs.map{[_1.expand_path, _2]} if yn =~ /^y/i
+  }
+end
