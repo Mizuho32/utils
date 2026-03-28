@@ -96,6 +96,7 @@
   - ttf-moralerspace
   - virtualbox
   - wl-clipboard
+  - pacman-contrib
 # clean
 # - evince
 # - poppler-data
