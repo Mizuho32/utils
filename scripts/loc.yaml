@@ -11,3 +11,4 @@
       #:backuppers/backupper.timer:   :".config/systemd/user/backupper.timer"
     :ollama/start-ollama.sh:          :"bin/start-ollama"
     :ffmpeg_nv:          :"bin/ffmpeg_nv"
+    :ffmpeg_vaapi:       :"bin/ffmpeg_va"
