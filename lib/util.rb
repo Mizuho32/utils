@@ -46,9 +46,17 @@ end
 
 def loc_dearray(loc)
 loc.map{|src, trg|
-  trg = trg.map(&:to_s).join(?/).to_sym if trg.is_a?(Array)
+  trg = [trg] if trg.is_a?(String)
+  trg = trg.map{|elm|
+    if elm.is_a?(Hash) then
+      elm.map{|kv| kv.map(&:to_s).join(?/) }
+    else
+      elm
+    end
+
+  }.flatten.map{ _1.to_s.to_sym }
   [src, trg]
-}.to_h
+}.inject([]){|acm, (src, targs)| targs.each{ acm << [src, _1] }.then{ acm } }
 end
 
 def exclude_files(type_files)
