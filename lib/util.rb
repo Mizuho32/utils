@@ -46,7 +46,7 @@ end
 
 def loc_dearray(loc)
 loc.map{|src, trg|
-  trg = [trg] if trg.is_a?(String)
+  trg = [trg] if [Symbol, String].any?{ trg.is_a?(_1) }
   trg = trg.map{|elm|
     if elm.is_a?(Hash) then
       elm.map{|kv| kv.map(&:to_s).join(?/) }
