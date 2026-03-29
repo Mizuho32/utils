@@ -68,6 +68,8 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
       backup_dir = cur_dir / bk_dir
 
       # backup
+      print "\nInstall #{dest}"
+
       if dest.exist? then
         FileUtils.mkdir(backup_dir) unless backup_dir.exist?
         backup_name = [dest.basename(dest.extname).to_s, rand_string(4)].join(?_) + dest.extname
@@ -81,8 +83,6 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
           next backup
         end
       end
-
-      print "\nInstall #{dest}"
 
       dest_parent = Pathname(dest).expand_path.parent
       FileUtils.mkdir_p(dest_parent) unless dest_parent.exist?
