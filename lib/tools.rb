@@ -54,7 +54,7 @@ def to_fish(rc)
       elsif line =~ /^(\s*alias\s+[^=]+=[^=]+)$/ then            # alias
         "#{$1}"                                                    # no modify
       elsif line !~ /if/ then                                    # not line of if
-        line.gsub(/^(#{bchar}+)?([^=#]+)=(.+)$/, '\1set \2 \3')    # assign
+        line.gsub(/^(#{bchar}+)?([_a-z0-9]+)=(.+)$/i, '\1set \2 \3')    # assign
       else
         line
       end
