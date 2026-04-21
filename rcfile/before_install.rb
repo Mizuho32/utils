@@ -45,10 +45,12 @@ loc[:type][:sym]
   .map{|file, sym| file.match /fish\/completions\/(?<filename>[^\.]+\.fish)/}
   .compact
   .map{|match| match[:filename] }
-  .each{|filename|  
+  .each do |filename|
     url = "#{base}#{filename}"
     File.write(rcfile_path+"fish/completions/#{filename}", URI.open(url).read) unless File.exist?(rcfile_path+"fish/completions/#{filename}")
-  }
+  rescue OpenURI::HTTPError => ex
+    warn "For fish '#{url}' #{ex.message}."
+  end
 
 # fd-find
 File.write(rcfile_path+"fish/completions/fd.fish", %x|fd --gen-completions=fish|) if system("which fd")
