@@ -15,6 +15,7 @@ export CARGO_HOME=$HOME/media/data/cargo
 export OBSIDIAN="$NAS/Documents/obsidian"
 export CHEAT_CMD_PATH="$OBSIDIAN/Projects/LinuxCommandsCheatSheet/Cheat Sheet.md"
 export RUSTUP_HOME=$HOME/media/data/rustup
+export EDITOR=vim
 
 ## for pyenv
 export CONFIGURE_OPTS="--enable-shared" 
@@ -38,7 +39,7 @@ alias sl="sl -e"
 alias LS="sl"
 alias xcopy="ruby -e 'print gets.strip' | xsel --clipboard --input"
 alias xpaste='xsel --clipboard --output'
-# alias ls="exa -F"
+alias ls="eza -F"
 
 <%= cstm %>
 
