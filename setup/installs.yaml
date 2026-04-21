@@ -48,6 +48,8 @@
   - nfs-client
   - bat
   - mosh
+  - watchman
+  - smartmontools
 # - &be build-essential
 # - vivaldi-repo
 # - vivaldi-stable
@@ -146,3 +148,5 @@
   - ripgrep
 :npx:
   - md-review
+:go install:
+  - github.com/charmbracelet/glow/v2@latest
