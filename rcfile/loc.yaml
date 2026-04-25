@@ -1,7 +1,7 @@
 :type:
   :sym:
-    :zshrc: :".zshrc"
-    :pryrc: :".pryrc"
+    #:zshrc: :".zshrc"
+    #:pryrc: :".pryrc"
     :config.fish:                 :".config/fish/config.fish"
     :fish/fish_prompt.fish:       :".config/fish/functions/fish_prompt.fish"
     :fish/fish_right_prompt.fish: :".config/fish/functions/fish_right_prompt.fish"
@@ -14,6 +14,13 @@
     :"fish/completions/mount.fish":         :".config/fish/completions/mount.fish"
     :"fish/completions/ruby.fish":          :".config/fish/completions/ruby.fish"
     :"fish/completions/systemctl.fish":     :".config/fish/completions/systemctl.fish"
+    :"fish/completions/fd.fish":            :".config/fish/completions/fd.fish"
+    #:"xprofile":                            :".xprofile"
+    :"kitty.conf":                          :".config/kitty/kitty.conf"
+    :"kde-env/mise.sh":                     :".config/plasma-workspace/env/mise.sh"
+    :"obsidian/user-flags.conf":            :".config/obsidian/user-flags.conf"
+    :"plasma-envs/mise.sh":                 :".config/plasma-workspace/env/mise.sh"
+    #:"plasma-envs/fcitx.sh":         :".config/plasma-workspace/env/fcitx.sh"
 :before_install:
 - "./before_install.rb"
 - "./fish/fish_logo_install.bash"

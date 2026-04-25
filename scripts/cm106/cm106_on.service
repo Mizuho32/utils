@@ -1,0 +1,10 @@
+[Unit]
+Description=Up CM106 SPDIF
+After=suspend.target
+
+[Service]
+Type=simple
+ExecStart=/home/mizuho/bin/cm106_on
+
+[Install]
+WantedBy=suspend.target

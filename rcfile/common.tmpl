@@ -1,9 +1,16 @@
+<%= cstm_head %>
 
 # export
 export GIT_EDITOR=vim
 export VIM=<%= vim %>
 export VIMRUNTIME=<%= vimruntime %>
 export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
+export NAS=$HOME/media/nas
+export PRJ=$HOME/media/nas/prjs
+export Reality=$NAS/Music/VtuberSongs/Reality
+export OBSIDIAN="$NAS/Documents/obsidian"
+export CHEAT_CMD_PATH="$OBSIDIAN/Projects/LinuxCommandsCheatSheet/Cheat Sheet.md"
+export RUSTUP_HOME=$HOME/media/data/rustup
 ## for pyenv
 export CONFIGURE_OPTS="--enable-shared" 
 
@@ -11,10 +18,11 @@ export CONFIGURE_OPTS="--enable-shared"
 <%=
 export <<-"PATH"
 $HOME/bin
-$HOME/.gem/ruby/3.0.0/bin
-/opt/cuda/bin
+$HOME/.cargo/bin
 PATH
 %>
+# $HOME/.local/share/gem/ruby/3.3.0/bin/
+# /opt/cuda/bin
 
 # alias
 alias open="xdg-open"
@@ -22,9 +30,14 @@ alias sl="sl -e"
 alias LS="sl"
 alias xcopy="ruby -e 'print gets.strip' | xsel --clipboard --input"
 alias xpaste='xsel --clipboard --output'
-alias ls="exa -F"
+alias ls="eza -gF"
 
 <%= cstm %>
+
+# if not interactive shell
+if ! [ -t 0 ]; then
+  export PATH=$PATH:$MISE_DATA_DIR/shims
+fi
 
 #################### ssh Login prompt #####################
 # Scp block avoid

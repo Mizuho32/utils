@@ -3,3 +3,4 @@ custom/gbs/
 custom/libsec/Makefile
 custom/libsec/git-credential-libsecret*
 custom/git-credential-lastpass
+/*.gitconfig

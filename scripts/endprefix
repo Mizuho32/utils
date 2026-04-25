@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if [ "$1" = "env" ]; then
+  SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+  #. systemenv.sh
+  toeval=$(cat $SCRIPT_DIR/systemenv.sh | sed "s/^\\([^=]*\\)=\\(.*\\)$/\\1='\\2'/")
+  eval "${toeval}"
+  exec bash
+else
+  exec env -i ${BASH_SOURCE[0]} env
+fi

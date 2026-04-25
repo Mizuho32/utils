@@ -1,25 +1,50 @@
 :common:
-  - fish
-# - zsh
-  - git
-  - gvim
-  - tmux
-  - tig
+# - git
+  - git-branch-status
   - tig-colors-neonwolf
+# - htop
+  - kitty
+# clean
+# - fish
+# - gvim
+# - tmux
+# - tig
+# - git-delta
+# - krdc
+# - mousepad
+# - code
+# - obsidian
+# - lolcat
+# - sl
+# - gimp
+# old
+# - zsh
 # - docky
 # - terminator
 # - gnome-system-monitor
 # - libsecret
 # - netrc
-  - lastpass-cli
-  - gitlastpass
-  - git-branch-status
-  - htop
-  - x11vnc
-  - krdc
+# - lastpass-cli
+# - gitlastpass
+# - opera
+# - x11vnc
+:flatpak install:
+  - vivaldi
+  - floorp
+  - audacity
+  - obsidian
+  - zoom
+  - viber
+  - discord
+  - vlc
+  - remmina
   - mousepad
-  - opera
+  - evince
+  - vscode
+  - org.gtk.Gtk3theme.Breeze-Dark
+  - Adwaita-dark
   - gimp
+  - org.sqlitebrowser.sqlitebrowser
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -28,62 +53,94 @@
   - *be
   - less
 :archlinux:
+# - blueman
   - yay
-# - aurman
   - cpupower
-# - compiz
-# - emerald
-# - bat
-  - thunar
-  - gvfs
-  - gvfs-mtp
-  - gvfs-smb
-  - thunar-archive-plugin
+# - thunar
+# - gvfs
+# - gvfs-mtp
+# - gvfs-smb
+# - thunar-archive-plugin
 # - thunar-shares-plugin
-  - thunar-volman
-  - tumbler
+# - thunar-volman
+# - tumbler
+  - sl
+  - lolcat
   - sshfs
   - lsof
   - iotop
-  - kwallet-pam
+# - kwallet-pam
 # - linux-lts
   - otf-takao
   - otf-ipafont
   - noto-fonts-cjk 
-  - evince
-  - poppler-data
-  - xsel
-  - file-roller
-  - unzip-iconv
-  - vivaldi
-  - vivaldi-ffmpeg-codecs
+# - file-roller
 # - cheat-git
-  - simplescreenrecorder
-  - xl2tpd
-  - networkmanager-l2tp
-  - tree
-  - xdg-user-dirs-gtk
-  - nerd-fonts-fira-code
-  - nm-connection-editor
-  - exa
-  - bat
-  - hexyl
-  - fd
-  - procs
-  - ripgrep
+# - xl2tpd
+# - networkmanager-l2tp
+# - xdg-user-dirs-gtk
+# - nm-connection-editor
   - net-tools
   - dnsutils
   - uucp
-  - opera-ffmpeg-codecs
   - ventoy
-  - fcitx
-  - fcitx-mozc
-  - firefox-i18n-ja
-  - kde-gtk-config
-  - kcm-fcitx
-  - julia
+# - kde-gtk-config
+  - fcitx5
+  - fcitx5-mozc
+  - kcm-fcitx5
+  - keyd
   - tldr
-  - iscan-plugin-perfection-v370
-  - sidekick-browser-stable-bin
+  - watchman-bin
+# - iscan-plugin-perfection-v370
+  - ttf-fira-code
+  - ttf-moralerspace
+  - virtualbox
+  - wl-clipboard
+  - pacman-contrib
+# clean
+# - evince
+# - poppler-data
+# - vivaldi
+# - vivaldi-ffmpeg-codecs
+# - vlc-plugin-ogg
+# - vlc-plugins-extra
+# - vlc-plugin-ffmpeg
+# - exa
+# - bat
+# - hexyl
+# - fd
+# - procs
+# - ripgrep
+# - firefox-i18n-ja
+# - julia
+# old
+# - aurman
+# - compiz
+# - emerald
+# - ttf-firacode-nerd
+# - xsel
+# - unzip-iconv
+# - simplescreenrecorder
+# - opera-ffmpeg-codecs
+# - sidekick-browser-stable-bin
 :develop:
   - cutecom
+  - base-devel
+:emerge -u:
+  - app-misc/trash-cli
+  - vim
+  - fish
+  - dev-vcs/tig
+  - app-text/tree
+  - app-misc/jq
+:cargo install:
+  - bat
+  - eza
+  - fd-find
+  - bottom
+  - git-delta
+  - hexyl
+  - procs
+  - ripgrep
+:npx:
+  - md-review

@@ -1,5 +1,8 @@
+tmp/
 .*swp
 .*swo
+venv/
+*env.sh
 
 backups/
 backups.yaml

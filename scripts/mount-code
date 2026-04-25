@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Integrate code on slow storage (NAS) and cache (vendor/bundle, node_modules, ...) on fast local storage by using unionfs
+
+NAME=$1
+NAS=$HOME/media/nas
+
+CODE_SRC=$NAS/prjs/$NAME
+CODE_TRG=$HOME/prjs/$NAME
+CACHE=$HOME/cache/unionfs/$NAME
+
+# check already mount
+if $(mount | grep unionfs | grep $NAME > /dev/null); then
+  echo $NAME already mounted
+  exit 0
+fi
+
+for path in ${CODE_SRC} ${CODE_TRG} ${CACHE}
+do
+  if ! [ -d $path ]; then
+    echo $path does not exist
+    exit 0
+  fi
+done
+
+unionfs $CODE_SRC=RW:$CACHE=RW $CODE_TRG
+echo mounted $NAME
