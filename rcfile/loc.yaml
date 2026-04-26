@@ -16,10 +16,10 @@
     :"fish/completions/systemctl.fish":     :".config/fish/completions/systemctl.fish"
     :"fish/completions/fd.fish":            :".config/fish/completions/fd.fish"
     #:"xprofile":                            :".xprofile"
-    :"kitty.conf":                          :".config/kitty/kitty.conf"
+    #:"kitty.conf":                          :".config/kitty/kitty.conf"
     :"kde-env/mise.sh":                     :".config/plasma-workspace/env/mise.sh"
     :"obsidian/user-flags.conf":            :".config/obsidian/user-flags.conf"
-    :"plasma-envs/mise.sh":                 :".config/plasma-workspace/env/mise.sh"
+    #:"plasma-envs/mise.sh":                 :".config/plasma-workspace/env/mise.sh"
     #:"plasma-envs/fcitx.sh":         :".config/plasma-workspace/env/fcitx.sh"
 :before_install:
 - "./before_install.rb"
