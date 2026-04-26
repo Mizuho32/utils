@@ -2,8 +2,10 @@
 # - git
   - git-branch-status
   - tig-colors-neonwolf
+  - cargo
+  - mise
 # - htop
-  - kitty
+# - kitty
 # clean
 # - fish
 # - gvim
@@ -28,23 +30,23 @@
 # - gitlastpass
 # - opera
 # - x11vnc
-:flatpak install:
-  - vivaldi
-  - floorp
-  - audacity
-  - obsidian
-  - zoom
-  - viber
-  - discord
-  - vlc
-  - remmina
-  - mousepad
-  - evince
-  - vscode
-  - org.gtk.Gtk3theme.Breeze-Dark
-  - Adwaita-dark
-  - gimp
-  - org.sqlitebrowser.sqlitebrowser
+#:flatpak install:
+#  - vivaldi
+#  - floorp
+#  - audacity
+#  - obsidian
+#  - zoom
+#  - viber
+#  - discord
+#  - vlc
+#  - remmina
+#  - mousepad
+#  - evince
+#  - vscode
+#  - org.gtk.Gtk3theme.Breeze-Dark
+#  - Adwaita-dark
+#  - gimp
+#  - org.sqlitebrowser.sqlitebrowser
 :ubuntu:
   - &be build-essential
   - vivaldi-repo
@@ -83,7 +85,7 @@
   - net-tools
   - dnsutils
   - uucp
-  - ventoy
+# - ventoy
 # - kde-gtk-config
   - fcitx5
   - fcitx5-mozc
@@ -94,7 +96,7 @@
 # - iscan-plugin-perfection-v370
   - ttf-fira-code
   - ttf-moralerspace
-  - virtualbox
+# - virtualbox
   - wl-clipboard
   - pacman-contrib
 # clean
