@@ -19,7 +19,7 @@ rcfile_path = Pathname(__FILE__).expand_path.dirname
 
 # vim location
 vim = "$HOME"
-unless File.exist?(ENV["VIMRUNTIME"].to_s) 
+unless File.exist?(ENV["VIMRUNTIME"].to_s)
   vimruntime = safe_run_cmd("locate vim") {|ex|
     puts "#{ex.message}",""
     print "Where is vim runtime dir? >>"
@@ -45,10 +45,13 @@ loc[:type][:sym]
   .map{|file, sym| file.match /fish\/completions\/(?<filename>[^\.]+\.fish)/}
   .compact
   .map{|match| match[:filename] }
-  .each{|filename|  
+  .each do |filename|
     url = "#{base}#{filename}"
     File.write(rcfile_path+"fish/completions/#{filename}", URI.open(url).read) unless File.exist?(rcfile_path+"fish/completions/#{filename}")
-  }
+  rescue StandardError => ex
+    warn("#{url} for #{filename}")
+    warn("#{ex.message} at #{ex.backtrace.join("\n")}")
+  end
 
 # fd-find
 File.write(rcfile_path+"fish/completions/fd.fish", %x|fd --gen-completions=fish|) if system("which fd")
