@@ -10,8 +10,19 @@ if not defined? DEBUG and ENV.include?("DEBUG")
   FileUtils.mkdir(ENV["HOME"]) if not File.exists?(ENV["HOME"])
 end
 
+def to_source_path(cur, source_name)
+  source_name = source_name.to_s.strip
+
+  source_name = source_name.gsub(/\$[_a-z0-9]+/i){ ENV[_1.sub(?$, '')].strip } if source_name.include?(?$)
+  if source_name[0] == ?/ then
+    return Pathname(source_name)
+  else
+    return Pathname(cur) / source_name
+  end
+end
+
 def check_link(cur, source_name, target_name)
-  source_path = Pathname(cur) / source_name.to_s
+  source_path = to_source_path(cur, source_name)
   target_path = Util.to_path(target_name)
 
   return target_path if source_path.exist? && target_path.symlink? && target_path.readlink.exist?
@@ -86,7 +97,7 @@ def install_sym(loc:nil, bk_dir:nil, bk_lst:nil, cur:nil)
 
       dest_parent = Pathname(dest).expand_path.parent
       FileUtils.mkdir_p(dest_parent) unless dest_parent.exist?
-      FileUtils.symlink(cur_dir / source_name.to_s, dest)
+      FileUtils.symlink(to_source_path(cur, source_name), dest)
     
       backup
     }.to_yaml)
