@@ -6,6 +6,9 @@ bind-key C-<%= key %> send-prefix
 ## shell
 # set-option -g default-shell <%= `which #{shell}`.strip %>
 
+## WOL UI
+bind-key W display-popup -E "wol_ui"
+
 ## General
 
 set -g default-terminal "screen-256color"
