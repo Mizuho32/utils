@@ -142,5 +142,7 @@
   - hexyl
   - procs
   - ripgrep
+:gem install:
+  - tmuxinator
 :npx:
   - md-review
