@@ -2,6 +2,7 @@
 
 # export
 export GIT_EDITOR=vim
+export EDITOR=vim
 export VIM=<%= vim %>
 export VIMRUNTIME=<%= vimruntime %>
 export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
@@ -54,9 +55,10 @@ if [ "${SSH_CLIENT}" != "" ]; then
 fi
 
 # Tmux select
-if  [ -z "$TMUX" ]; then
+tmux_ls=$(tmux ls)
+tmux_ls_status=$?
+if  [ -z "$TMUX" ] && [ "$tmux_ls_status" = '0' ]; then
 
-  tmux_ls=$(tmux ls)
 
   if [ $? -eq 0 ]; then
     

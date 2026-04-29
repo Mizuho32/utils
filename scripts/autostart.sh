@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 #konsole &
-kitty &
+#kitty &
+# like: bash -c 'startprefix -c 'cmds';startprefix'
+# for s in  system apps remotes; tmuxinator start $s --no-attach; end # launch sessions
+kitty bash -c '$HOME/bin/startprefix -c '"'"'for s in system apps remotes;tmuxinator start $s --no-attach; end'"'"';$HOME/bin/startprefix'&
 
 sleep 10
 
