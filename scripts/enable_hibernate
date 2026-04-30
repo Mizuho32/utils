@@ -1,0 +1,340 @@
+#!/usr/bin/env ruby
+#coding: utf-8
+
+# ● scripts/enable_hibernate を実装しました。Ubuntu / Arch 対応の対話式・冪等な hibernate 設定スクリプトで、activeな swap パーティションを確認し、
+#   resume=UUID=... の grub 設定と initramfs 側の設定案を /tmp に作って差分表示し、y のときだけ反映します。
+# 
+#   既存の resume= は置換し、同じ設定が入っていれば 変更なしで終了します。Ubuntu は /etc/initramfs-tools/conf.d/resume と update-initramfs -u / update-grub、Arch は /etc/mkinitcpio.conf の HOOKS と mkinitcpio -P / grub-mkconfig -o /boot/grub/grub.cfgを扱います。
+#   blkid で UUID が取れない環境向けに lsblk / findmnt のフォールバックも入れました。
+
+
+require 'open3'
+require 'time'
+
+GRUB_PATH = '/etc/default/grub'
+UBUNTU_RESUME_PATH = '/etc/initramfs-tools/conf.d/resume'
+ARCH_MKINITCPIO_PATH = '/etc/mkinitcpio.conf'
+
+def abort_with(message)
+  warn message
+  exit 1
+end
+
+def run!(*command, stdin_data: nil, allowed_exit_codes: [0])
+  out, status = Open3.capture2e(*command, stdin_data: stdin_data)
+  return out if allowed_exit_codes.include?(status.exitstatus)
+
+  abort_with <<~EOF
+    Command failed: #{command.join(' ')}
+    #{out}
+  EOF
+end
+
+def usage
+  <<~EOF
+    Usage:
+      enable_hibernate
+
+    Active swap partitions only are supported.
+    The script updates grub and initramfs settings for Ubuntu or Arch Linux.
+  EOF
+end
+
+def command_exists?(name)
+  ENV.fetch('PATH', '').split(File::PATH_SEPARATOR).any? do |dir|
+    path = File.join(dir, name)
+    File.file?(path) && File.executable?(path)
+  end
+end
+
+def parse_os_release
+  File.read('/etc/os-release')
+    .lines
+    .map(&:strip)
+    .reject { |line| line.empty? || line.start_with?('#') }
+    .filter_map { |line| line.split('=', 2) if line.include?('=') }
+    .to_h
+    .transform_values { |value| value.gsub(/\A["']|["']\z/, '') }
+end
+
+def detect_distro
+  data = parse_os_release
+  tags = [data['ID'], data['ID_LIKE']].compact.join(' ').downcase
+  return :ubuntu if tags.include?('ubuntu') || tags.include?('debian')
+  return :arch if tags.include?('arch')
+
+  abort_with("Unsupported distribution: #{data['PRETTY_NAME'] || data['ID'] || 'unknown'}")
+end
+
+def ensure_commands!(distro)
+  required = %w[swapon blkid lsblk diff sudo install cp]
+  required.concat(
+    case distro
+    when :ubuntu then %w[update-initramfs update-grub]
+    when :arch then %w[mkinitcpio grub-mkconfig]
+    else []
+    end
+  )
+
+  missing = required.uniq.reject { |name| command_exists?(name) }
+  abort_with("Required commands are missing: #{missing.join(', ')}") unless missing.empty?
+end
+
+def active_swaps
+  run!('swapon', '--show=NAME,SIZE,TYPE', '--noheadings', '--raw')
+    .lines
+    .map(&:strip)
+    .reject(&:empty?)
+    .map do |line|
+      name, size, type = line.split(/\s+/, 3)
+      { name: name, size: size, type: type }
+    end
+end
+
+def choose_swap(swaps)
+  abort_with('No active swap found.') if swaps.empty?
+  return swaps.first if swaps.size == 1
+
+  puts 'Active swap entries:'
+  swaps.each.with_index(1) do |swap, index|
+    puts format('%2d. %-25s size=%-8s type=%s', index, swap[:name], swap[:size], swap[:type])
+  end
+
+  print 'Select swap number: '
+  selected = STDIN.gets.to_s.strip
+  index = Integer(selected, 10)
+  swap = swaps[index - 1]
+  return swap if swap
+
+  abort_with('Invalid selection.')
+rescue ArgumentError
+  abort_with('Invalid selection.')
+end
+
+def ensure_swap_partition!(swap)
+  abort_with("Swapfile is not supported: #{swap[:name]}") if swap[:type] == 'file'
+  abort_with("Swap partition is required: #{swap[:name]}") unless swap[:name].start_with?('/dev/')
+  abort_with("Not a block device: #{swap[:name]}") unless File.blockdev?(swap[:name])
+end
+
+def fetch_uuid(device)
+  uuid = run!('blkid', '-s', 'UUID', '-o', 'value', device).strip
+  uuid = run!('lsblk', '-no', 'UUID', device).lines.map(&:strip).find { |line| !line.empty? } if uuid.empty?
+  uuid = run!('findmnt', '-no', 'UUID', device).strip if uuid.empty? && command_exists?('findmnt')
+  abort_with("Could not resolve UUID for #{device}") if uuid.empty?
+
+  uuid
+end
+
+def ensure_file_exists!(path)
+  abort_with("File not found: #{path}") unless File.exist?(path)
+end
+
+def replace_resume_tokens(value, resume_arg)
+  tokens = value.split(/\s+/).reject(&:empty?)
+  kept = tokens.reject { |token| token.start_with?('resume=') }
+  updated = kept + [resume_arg]
+  [updated.join(' '), updated != tokens]
+end
+
+def update_grub_content(content, resume_arg)
+  keys = %w[GRUB_CMDLINE_LINUX_DEFAULT GRUB_CMDLINE_LINUX]
+
+  keys.each do |key|
+    content.lines.each_with_index do |line, index|
+      next unless line.match?(/^\s*#{Regexp.escape(key)}\s*=/)
+
+      match = line.chomp.match(/^(\s*#{Regexp.escape(key)}\s*=\s*)(["'])(.*?)\2(\s*(?:#.*)?)$/)
+      abort_with("Could not parse #{key} in #{GRUB_PATH}") unless match
+
+      prefix, quote, value, suffix = match.captures
+      updated_value, = replace_resume_tokens(value, resume_arg)
+      updated_line = "#{prefix}#{quote}#{updated_value}#{quote}#{suffix}\n"
+      updated_content = content.lines.tap { |lines| lines[index] = updated_line }.join
+      return [updated_content, updated_content != content, key]
+    end
+  end
+
+  addition = %(GRUB_CMDLINE_LINUX_DEFAULT="#{resume_arg}"\n)
+  separator = content.end_with?("\n") || content.empty? ? '' : "\n"
+  updated_content = "#{content}#{separator}#{addition}"
+  [updated_content, true, 'GRUB_CMDLINE_LINUX_DEFAULT']
+end
+
+def update_mkinitcpio_content(content)
+  hook_line = nil
+  hook_index = nil
+
+  content.lines.each_with_index do |line, index|
+    next if line.lstrip.start_with?('#')
+    next unless line.match?(/^\s*HOOKS\s*=/)
+
+    hook_line = line
+    hook_index = index
+    break
+  end
+
+  abort_with("Could not find HOOKS= in #{ARCH_MKINITCPIO_PATH}") unless hook_line
+
+  match = hook_line.chomp.match(/^(\s*HOOKS\s*=\s*)\(([^)]*)\)(\s*(?:#.*)?)$/)
+  abort_with("Could not parse HOOKS= in #{ARCH_MKINITCPIO_PATH}") unless match
+
+  prefix, body, suffix = match.captures
+  hooks = body.split(/\s+/).reject(&:empty?)
+  return [content, false] if hooks.include?('resume')
+
+  insert_at = hooks.index('filesystems') || hooks.index('fsck') || hooks.length
+  hooks.insert(insert_at, 'resume')
+  updated_line = "#{prefix}(#{hooks.join(' ')})#{suffix}\n"
+  updated_content = content.lines.tap { |lines| lines[hook_index] = updated_line }.join
+
+  [updated_content, true]
+end
+
+def temp_path_for(path)
+  "/tmp/#{File.basename(path)}.#{Process.pid}.tmp"
+end
+
+def write_temp_copy(target_path, content)
+  tmp_path = temp_path_for(target_path)
+  File.write(tmp_path, content)
+  tmp_path
+end
+
+def diff_text(original_path, tmp_path)
+  if File.exist?(original_path)
+    run!(
+      'diff', '-u',
+      '--label', "#{original_path} (current)",
+      '--label', "#{original_path} (proposed)",
+      original_path,
+      tmp_path,
+      allowed_exit_codes: [0, 1]
+    )
+  else
+    <<~EOF
+      --- #{original_path} (current)
+      +++ #{original_path} (proposed)
+      #{File.read(tmp_path)}
+    EOF
+  end
+end
+
+def backup_file!(path)
+  return unless File.exist?(path)
+
+  backup_path = "#{path}.bak.#{Time.now.strftime('%Y%m%d%H%M%S')}"
+  run!('sudo', 'cp', '-a', path, backup_path)
+  backup_path
+end
+
+def install_file!(tmp_path, target_path)
+  run!('sudo', 'install', '-Dm644', tmp_path, target_path)
+end
+
+def cleanup(paths)
+  paths.each do |path|
+    File.delete(path) if path && File.exist?(path)
+  end
+end
+
+if ARGV.include?('-h') || ARGV.include?('--help')
+  puts usage
+  exit 0
+end
+
+distro = detect_distro
+ensure_commands!(distro)
+
+swap = choose_swap(active_swaps)
+ensure_swap_partition!(swap)
+
+uuid = fetch_uuid(swap[:name])
+resume_arg = "resume=UUID=#{uuid}"
+
+ensure_file_exists!(GRUB_PATH)
+grub_original = File.read(GRUB_PATH)
+grub_updated, grub_changed, grub_key = update_grub_content(grub_original, resume_arg)
+grub_tmp = write_temp_copy(GRUB_PATH, grub_updated)
+
+initramfs_target =
+  case distro
+  when :ubuntu
+    initramfs_content = "RESUME=UUID=#{uuid}\n"
+    [UBUNTU_RESUME_PATH, initramfs_content, File.exist?(UBUNTU_RESUME_PATH) ? File.read(UBUNTU_RESUME_PATH) != initramfs_content : true]
+  when :arch
+    ensure_file_exists!(ARCH_MKINITCPIO_PATH)
+    original = File.read(ARCH_MKINITCPIO_PATH)
+    updated, changed = update_mkinitcpio_content(original)
+    [ARCH_MKINITCPIO_PATH, updated, changed]
+  end
+
+initramfs_path, initramfs_content, initramfs_changed = initramfs_target
+initramfs_tmp = write_temp_copy(initramfs_path, initramfs_content)
+
+puts "Distribution : #{distro}"
+puts "Swap device  : #{swap[:name]}"
+puts "Swap size    : #{swap[:size]}"
+puts "Swap type    : #{swap[:type]}"
+puts "Swap UUID    : #{uuid}"
+puts "Kernel arg   : #{resume_arg}"
+puts "GRUB key     : #{grub_key}"
+puts "GRUB temp    : #{grub_tmp}"
+puts "Initramfs    : #{initramfs_path}"
+puts "Initramfs tmp: #{initramfs_tmp}"
+puts
+
+if grub_changed
+  puts '--- GRUB diff ---'
+  puts diff_text(GRUB_PATH, grub_tmp)
+else
+  puts "GRUB already configured: #{GRUB_PATH}"
+end
+
+puts
+
+if initramfs_changed
+  puts "--- #{File.basename(initramfs_path)} diff ---"
+  puts diff_text(initramfs_path, initramfs_tmp)
+else
+  puts "Initramfs already configured: #{initramfs_path}"
+end
+
+unless grub_changed || initramfs_changed
+  puts
+  puts 'Hibernate resume is already configured. No changes needed.'
+  cleanup([grub_tmp, initramfs_tmp])
+  exit 0
+end
+
+puts
+print 'Apply these changes? [y/N]: '
+answer = STDIN.gets.to_s.strip.downcase
+
+unless %w[y yes].include?(answer)
+  puts "Skipped. Temp files remain at #{grub_tmp} and #{initramfs_tmp}"
+  exit 0
+end
+
+backups = []
+backups << backup_file!(GRUB_PATH) if grub_changed
+backups << backup_file!(initramfs_path) if initramfs_changed
+backups.compact!
+
+install_file!(grub_tmp, GRUB_PATH) if grub_changed
+install_file!(initramfs_tmp, initramfs_path) if initramfs_changed
+
+case distro
+when :ubuntu
+  run!('sudo', 'update-initramfs', '-u')
+  run!('sudo', 'update-grub')
+when :arch
+  run!('sudo', 'mkinitcpio', '-P')
+  run!('sudo', 'grub-mkconfig', '-o', '/boot/grub/grub.cfg')
+end
+
+cleanup([grub_tmp, initramfs_tmp])
+
+puts 'Hibernate resume has been configured.'
+puts "Backups       : #{backups.join(', ')}" unless backups.empty?
+puts 'Reboot before testing hibernate/resume.'
