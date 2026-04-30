@@ -84,5 +84,7 @@
   - tldr
   - iscan-plugin-perfection-v370
   - sidekick-browser-stable-bin
+:android:
+  - 'libc6:i386 libncurses6:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386'
 :develop:
   - cutecom
