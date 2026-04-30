@@ -12,4 +12,5 @@
     :backuppers/backupper.service: :".config/systemd/user/backupper.service"
     :backuppers/backupper.timer:   :".config/systemd/user/backupper.timer"
     :reset_screen:    :"bin/reset_screen"
-    :"$HOME/prjs/RubyTools/WOL_UI/bin/wol_ui":  :"bin/wol_ui"
+    :"$HOME/prjs/RubyTools/WOL_UI/bin/wol_ui":                :"bin/wol_ui"
+    :"$HOME/prjs/RubyTools/WiFikeyboardUI/bin/wifikeyboard":  :"bin/wifikeyboard"
