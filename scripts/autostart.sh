@@ -41,5 +41,5 @@ fi
 
 
 #mount $HOME/media/mizuho
-$HOME/prjs/bin/mount-unionfs.sh
+cd $HOME/prjs && ./bin/mount-unionfs.sh
 
