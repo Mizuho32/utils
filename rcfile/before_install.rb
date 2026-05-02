@@ -5,7 +5,7 @@ require 'erb'
 require 'open-uri'
 
 require_relative '../lib/util'
-require_relative 'tools'
+require_relative '../lib/tools'
 
 unless File.exist?(`which vim`.chomp) then
   $stderr.puts <<-"WARN"
