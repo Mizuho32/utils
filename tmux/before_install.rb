@@ -5,10 +5,11 @@ require 'erb'
 
 tmux_version = `tmux -V`[/(\d+\.\d+)/, 1].to_f
 COND         = 2.4
+default_key = ?g
 
-print "Enter key prefix [a-z] (default: f) >>"
+print "Enter key prefix [a-z] (default: #{default_key}) >>"
 key = if (k = gets.chomp).empty? then
-        ?f
+        default_key
       else
         k
       end
