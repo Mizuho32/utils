@@ -8,7 +8,7 @@
   - git-branch-status
   - tig-colors-neonwolf
 # - htop
-  - kitty
+# - kitty
 # clean
 # - fish
 # - gvim
@@ -32,7 +32,7 @@
 # - lastpass-cli
 # - gitlastpass
   - htop
-  - x11vnc
+# - x11vnc
   - curl
 # - krdc
 # - mousepad
@@ -42,7 +42,7 @@
 # - code
   - lolcat
   - sl
-  - git-delta
+# - git-delta
 # - x11vnc
 :ubuntu:
   - nfs-client
