@@ -137,6 +137,7 @@
   - dev-vcs/tig
   - app-text/tree
   - app-misc/jq
+  - sys-apps/net-tools
 :cargo install:
   - bat
   - eza
