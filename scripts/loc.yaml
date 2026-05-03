@@ -14,3 +14,4 @@
     :ffmpeg_vaapi:       :"bin/ffmpeg_va"
     :ro-env:          :"bin/ro-env"
     :mount-code:      :"bin/mount-code"
+    :docker-user:     :"bin/docker-user"
