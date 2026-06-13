@@ -44,6 +44,7 @@
   - sl
 # - git-delta
 # - x11vnc
+  - intel-smi
 :ubuntu:
   - nfs-client
   - bat
@@ -138,6 +139,7 @@
   - app-text/tree
   - app-misc/jq
   - sys-apps/net-tools
+  - app-misc/sl
 :cargo install:
   - bat
   - eza

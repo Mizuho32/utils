@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd custom
+[ -f ../intel-smi ] || wget 'https://raw.githubusercontent.com/nicejunjie/gpu-smi/refs/heads/main/intel-smi' -O ../intel-smi
+chmod u+x ../intel-smi

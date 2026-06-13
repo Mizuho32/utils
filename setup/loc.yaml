@@ -2,6 +2,7 @@
   :sym:
     :"custom/gbs/git-branch-status":         "bin/git-branch-status"
     :"custom/tig-colors-neonwolf-256.tigrc": ".tigrc"
+    :"intel-smi":                            "bin/intel-smi"
 #   :"custom/libsec/git-credential-libsecret":  "bin/git-credential-libsecret"
 #   :"custom/git-credential-lastpass":  "bin/git-credential-lastpass"
 #   :"custom/git-credential-netrc":     "bin/git-credential-netrc"
