@@ -107,7 +107,7 @@ end
 
 def uninstall_sym(loc:knil, bk_dir:nil, bk_lst:nil, cur:nil)
 
-  dests = loc.values.map{|t| Util.to_path(t) }
+  dests = loc.to_h.values.map{|t| Util.to_path(t) }
   puts "\n#{dests.join("\n")}\n"
 
   print "\033[33mUnInstall\033[0m them? [y/n] >>"
