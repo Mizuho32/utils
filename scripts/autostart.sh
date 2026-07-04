@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+#mount $HOME/media/mizuho
+cd $HOME/prjs && ./bin/mount-unionfs.sh
+
 #konsole &
 #kitty &
 # like: bash -c 'startprefix -c 'cmds';startprefix'
@@ -39,7 +42,8 @@ fi
 # pactl list modules
 # pactl unload-module モジュール番号
 
-
-#mount $HOME/media/mizuho
-cd $HOME/prjs && ./bin/mount-unionfs.sh
-
+# tmux copy
+if systemctl --user status tmux_copy.service | head -n3 | grep -i inactive > /dev/null; then
+  # inactive
+  systemctl --user start tmux_copy.service
+fi 
