@@ -36,7 +36,7 @@ def to_fish(rc)
     .gsub(/\$\{([^\{\}]+)\}/, '$\1')                               # ${var} -> $var
     .gsub(/\$\?/, '$status')                                       # $? -> $status
     .gsub(/\$(\(.+\))$/, '\1')                                     # $(cmd) -> (cmd)
-    .gsub(/2>/, '^')                                               # 2> -> ^
+    #.gsub(/2>/, '^')                                               # 2> -> ^ # removed from recent fish
     .gsub(/;(?:\s)*(?:then|do)$/,"")                               # then, do -> ""
     .gsub(/((?:\s|\n)+)(?:fi|done)$/, '\1end')                     # fi,done -> end
     .gsub(/^(#{bchar}*)([^=\s]+)\+=\(\s+([^=\s]+)\s+\)$/, 
