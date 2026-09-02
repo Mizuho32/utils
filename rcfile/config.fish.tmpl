@@ -82,11 +82,13 @@ abbr gp 'git push -u'
 abbr gr 'git remote -v'
 abbr gs 'git status'
 abbr gl 'git log'
-abbr vivaldi 'systemd-run --user --scope -p CPUQuota=200% -p MemoryMax=4G flatpak run com.vivaldi.Vivaldi --password-store=kwallet6'
+abbr vivaldi 'systemd-run --user --scope -p CPUQuota=200% -p MemoryMax=4G flatpak run com.vivaldi.Vivaldi --password-store=kwallet6 > /dev/null 2>&1 &'
 abbr xo 'xdg-open'
 abbr fu 'flatpak update'
 abbr fr 'flatpak run'
 abbr copilot 'ro-env $PWD /tmp $HOME/.cache $HOME/.copilot -- copilot'
+abbr claude 'ro-env $PWD /tmp $HOME/.cache $HOME/.claude{,.json,.json.lock} -- /usr/bin/bash -lic claude'
+abbr qidiprint '$HOME/Applications/QIDI_Print-6.5.0_0b2d01a5ff7e19e384b6fb56d1afbc5b.AppImage >/dev/null 2>&1 &'
 
 
 CUSTOM
