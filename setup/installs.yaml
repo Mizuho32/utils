@@ -97,6 +97,7 @@
   - virtualbox
   - wl-clipboard
   - pacman-contrib
+  - intel-gpu-tools
 # clean
 # - evince
 # - poppler-data
@@ -146,3 +147,7 @@
   - tmuxinator
 :npx:
   - md-review
+:kde:
+  - yakuake
+:mise use -g:
+  - github:shibadogcap/dpgk
