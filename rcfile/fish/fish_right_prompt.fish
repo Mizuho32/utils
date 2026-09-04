@@ -22,20 +22,19 @@ function __bobthefish_project_pwd -S -a project_root_dir -a real_pwd -d 'Print t
   string replace -ar '(\.?[^/]{'"$theme_project_dir_length"'})[^/]*/' '$1/' $project_dir
 end
 
-function __bobthefish_git_branch -S -d 'Get the current git branch (or commitish)'
-  set -l ref (command git symbolic-ref HEAD 2>/dev/null)
-  and begin
-    [ "$theme_display_git_master_branch" != 'yes' -a "$ref" = 'refs/heads/master' ]
+function __bobthefish_git_branch_display -S -a branch_head -d 'Format a branch name already resolved from `git status --porcelain=v2`'
+  if [ -n "$branch_head" -a "$branch_head" != '(detached)' ]
+    [ "$theme_display_git_master_branch" != 'yes' -a "$branch_head" = 'master' ]
     and echo $branch_glyph
     and return
 
     # truncate the middle of the branch name, but only if it's 25+ characters
-    set -l truncname (string replace -r '^(.{28}).{3,}(.{5})$' "\$1…\$2" $ref)
-
-    string replace -r '^refs/heads/' "$branch_glyph " $truncname
-    and return
+    set -l truncname (string replace -r '^(.{28}).{3,}(.{5})$' "\$1…\$2" $branch_head)
+    echo "$branch_glyph $truncname"
+    return
   end
 
+  # detached HEAD is rare enough to afford its own git calls
   set -l tag (command git describe --tags --exact-match 2>/dev/null)
   and echo "$tag_glyph $tag"
   and return
@@ -150,55 +149,27 @@ function __bobthefish_path_segment -S -a segment_dir -d 'Display a shortened for
   echo -ns $directory ' '
 end
 
-function __bobthefish_git_ahead -S -d 'Print the ahead/behind state for the current branch'
+function __bobthefish_git_ahead_display -S -a ahead -a behind -d 'Print the ahead/behind state given counts already parsed from `git status --porcelain=v2 --branch`'
   if [ "$theme_display_git_ahead_verbose" = 'yes' ]
-    __bobthefish_git_ahead_verbose
+    switch "$ahead $behind"
+      case '0 0' # equal to upstream (or no upstream)
+        return
+      case '* 0' # ahead of upstream
+        echo "$git_ahead_glyph$ahead"
+      case '0 *' # behind upstream
+        echo "$git_behind_glyph$behind"
+      case '*' # diverged from upstream
+        echo "$git_ahead_glyph$ahead$git_behind_glyph$behind"
+    end
     return
   end
 
-  set -l ahead 0
-  set -l behind 0
-  for line in (command git rev-list --left-right '@{upstream}...HEAD' 2>/dev/null)
-    switch "$line"
-      case '>*'
-        if [ $behind -eq 1 ]
-          echo '±'
-          return
-        end
-        set ahead 1
-      case '<*'
-        if [ $ahead -eq 1 ]
-          echo "$git_plus_minus_glyph"
-          return
-        end
-        set behind 1
-    end
-  end
-
-  if [ $ahead -eq 1 ]
+  if [ "$ahead" -gt 0 -a "$behind" -gt 0 ]
+    echo '±'
+  else if [ "$ahead" -gt 0 ]
     echo "$git_plus_glyph"
-  else if [ $behind -eq 1 ]
+  else if [ "$behind" -gt 0 ]
     echo "$git_minus_glyph"
-  end
-end
-
-function __bobthefish_git_ahead_verbose -S -d 'Print a more verbose ahead/behind state for the current branch'
-  set -l commits (command git rev-list --left-right '@{upstream}...HEAD' 2>/dev/null)
-  or return
-
-  set -l behind (count (for arg in $commits; echo $arg; end | command grep '^<'))
-  set -l ahead (count (for arg in $commits; echo $arg; end | command grep -v '^<'))
-
-  switch "$ahead $behind"
-    case '' # no upstream
-    case '0 0' # equal to upstream
-      return
-    case '* 0' # ahead of upstream
-      echo "$git_ahead_glyph$ahead"
-    case '0 *' # behind upstream
-      echo "$git_behind_glyph$behind"
-    case '*' # diverged from upstream
-      echo "$git_ahead_glyph$ahead$git_behind_glyph$behind"
   end
 end
 
@@ -222,33 +193,57 @@ function __bobthefish_git_stashed -S -d 'Print the stashed state for the current
 end
 
 function __bobthefish_prompt_git -S -a git_root_dir -a real_pwd -d 'Display the actual git state'
-  set -l dirty ''
-  if [ "$theme_display_git_dirty" != 'no' ]
-    set -l show_dirty (command git config --bool bash.showDirtyState 2>/dev/null)
-    if [ "$show_dirty" != 'false' ]
-      set dirty (command git diff --no-ext-diff --quiet --exit-code 2>/dev/null; or echo -n "$git_dirty_glyph")
-      if [ "$dirty" -a "$theme_display_git_dirty_verbose" = 'yes' ]
-        set dirty "$dirty"(__bobthefish_git_dirty_verbose)
-      end
+  set -l branch_head ''
+  set -l ahead 0
+  set -l behind 0
+  set -l has_staged 0
+  set -l has_dirty 0
+  set -l has_untracked 0
+
+  for line in (command git status --porcelain=v2 --branch --ignore-submodules 2>/dev/null)
+    set -l parts (string split ' ' -- $line)
+    switch $parts[1]
+      case '#'
+        switch $parts[2]
+          case branch.head
+            set branch_head $parts[3]
+          case branch.ab
+            set ahead (string sub -s 2 -- $parts[3])
+            set behind (string sub -s 2 -- $parts[4])
+        end
+      case 1 2
+        [ (string sub -l 1 -- $parts[2]) != '.' ]
+        and set has_staged 1
+        [ (string sub -l 1 -s 2 -- $parts[2]) != '.' ]
+        and set has_dirty 1
+      case u
+        set has_staged 1
+        set has_dirty 1
+      case '?'
+        set has_untracked 1
     end
   end
 
-  set -l staged (command git diff --cached --no-ext-diff --quiet --exit-code 2>/dev/null; or echo -n "$git_staged_glyph")
+  set -l dirty ''
+  if [ "$theme_display_git_dirty" != 'no' -a "$has_dirty" = 1 ]
+    set dirty "$git_dirty_glyph"
+    if [ "$theme_display_git_dirty_verbose" = 'yes' ]
+      set dirty "$dirty"(__bobthefish_git_dirty_verbose)
+    end
+  end
+
+  set -l staged ''
+  [ "$has_staged" = 1 ]
+  and set staged "$git_staged_glyph"
+
   set -l stashed (__bobthefish_git_stashed)
-  set -l ahead (__bobthefish_git_ahead)
+  set -l ahead_display (__bobthefish_git_ahead_display $ahead $behind)
 
   set -l new ''
-  if [ "$theme_display_git_untracked" != 'no' ]
-    set -l show_untracked (command git config --bool bash.showUntrackedFiles 2>/dev/null)
-    if [ "$show_untracked" != 'false' ]
-      set new (command git ls-files --other --exclude-standard --directory --no-empty-directory 2>/dev/null)
-      if [ "$new" ]
-        set new "$git_untracked_glyph"
-      end
-    end
-  end
+  [ "$theme_display_git_untracked" != 'no' -a "$has_untracked" = 1 ]
+  and set new "$git_untracked_glyph"
 
-  set -l flags "$dirty$staged$stashed$ahead$new"
+  set -l flags "$dirty$staged$stashed$ahead_display$new"
 
   [ "$flags" ]
   and set flags " $flags"
@@ -263,7 +258,7 @@ function __bobthefish_prompt_git -S -a git_root_dir -a real_pwd -d 'Display the 
 #  __bobthefish_path_segment $git_root_dir
 
   __bobthefish_start_segment $flag_colors
-  echo -ns (__bobthefish_git_branch) $flags ' '
+  echo -ns (__bobthefish_git_branch_display $branch_head) $flags ' '
   set_color normal
 
   if [ "$theme_git_worktree_support" != 'yes' ]
@@ -342,6 +337,26 @@ function __bobthefish_prompt_git -S -a git_root_dir -a real_pwd -d 'Display the 
 end
 
 
+function __bobthefish_git_prompt_cache_defaults -S -d 'Initialize the lazy git-status cache state on first use'
+  set -q __git_prompt_cache_root
+  or set -g __git_prompt_cache_root ''
+  set -q __git_prompt_cache_str
+  or set -g __git_prompt_cache_str ''
+  set -q __git_prompt_cache_time
+  or set -g __git_prompt_cache_time 0
+  set -q theme_git_prompt_cache_max_age
+  or set -g theme_git_prompt_cache_max_age 10
+
+  # invalidate the cache after any `git ...` command, so the next prompt
+  # recomputes instead of waiting out the max-age fallback
+  if not functions -q __git_prompt_cache_on_postexec
+    function __git_prompt_cache_on_postexec --on-event fish_postexec -d 'Force a git-status recompute after a git command runs'
+      string match -qr '^\s*(command\s+)?git\s' -- $argv[1]
+      and set -g __git_prompt_cache_time 0
+    end
+  end
+end
+
 function fish_right_prompt -d 'git right prompt'
 
   set -g theme_display_git yes
@@ -361,9 +376,21 @@ function fish_right_prompt -d 'git right prompt'
   #echo -n $left_black_arrow_glyph
 
   # VCS
-  git rev-parse --show-toplevel > /dev/null 2> /dev/null
-  if [ "$status" = "0" ]
-    __bobthefish_prompt_git $git_root_dir $real_pw
+  __bobthefish_git_prompt_cache_defaults
+
+  set -l root (command git rev-parse --show-toplevel 2>/dev/null)
+  if [ -n "$root" ]
+    set -l now (date +%s)
+    if [ "$root" != "$__git_prompt_cache_root" ]
+      or [ (math "$now - $__git_prompt_cache_time") -ge "$theme_git_prompt_cache_max_age" ]
+      set -g __git_prompt_cache_str (__bobthefish_prompt_git $root $PWD | string collect)
+      set -g __git_prompt_cache_root $root
+      set -g __git_prompt_cache_time $now
+    end
+
+    echo -n $__git_prompt_cache_str
+  else
+    set -g __git_prompt_cache_root ''
   end
 
   #echo -n $left_arrow_glyph
