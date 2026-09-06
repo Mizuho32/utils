@@ -22,7 +22,11 @@ sleep 1
 flatpak run org.pulseaudio.pavucontrol&
 sleep 1
 
-dolphin &
+pgrep dolphin || dolphin &
+sleep 1
+
+#flatpak run moe.emmaexe.ntfyDesktop&
+pgrep ntfyDesktop || ntfyDesktop&
 sleep 1
 
 #discord --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-wayland-ime &
