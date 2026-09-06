@@ -89,6 +89,7 @@ abbr fr 'flatpak run'
 abbr copilot 'ro-env $PWD /tmp $HOME/.cache $HOME/.copilot -- copilot'
 abbr claude 'ro-env $PWD /tmp $HOME/.cache $HOME/.claude{,.json,.json.lock} -- /usr/bin/bash -lic claude'
 abbr qidiprint '$HOME/Applications/QIDI_Print-6.5.0_0b2d01a5ff7e19e384b6fb56d1afbc5b.AppImage >/dev/null 2>&1 &'
+abbr swapuse 'grep VmSwap /proc/*/status | sort -k 2 -nr | head | cut -d"/" -f3 | grep -e \\'^[0-9]*$\\' | xargs -I{} ps u -p{} --no-headers'
 
 
 CUSTOM
