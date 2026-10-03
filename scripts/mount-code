@@ -18,8 +18,9 @@ fi
 for path in ${CODE_SRC} ${CODE_TRG} ${CACHE}
 do
   if ! [ -d $path ]; then
-    echo $path does not exist
-    exit 0
+    echo $path does not exist. Make it.
+    mkdir -p $path
+    #exit 1
   fi
 done
 
