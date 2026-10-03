@@ -14,8 +14,8 @@ sleep 10
 flatpak run md.obsidian.Obsidian&
 sleep 1
 
-audacity &
-#flatpak run org.audacityteam.Audacity&
+#audacity &
+flatpak run org.audacityteam.Audacity&
 sleep 1
 
 # pavucontrol &
