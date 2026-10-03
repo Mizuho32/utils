@@ -39,6 +39,9 @@ set fish_pager_color_description B3A06D
 set fish_pager_color_prefix white --bold --underline
 set fish_pager_color_progress white --background=cyan
 
+# Ntfy after long time run
+# set -U ntfy_notify_threshold_sec 1
+
 <%= custom cstm_head: (<<-"CUSTOM"
 if string match -q "/opt/gentoo_prefix/*" $SHELL
   source /opt/gentoo_prefix/x86_64/etc/profile.env
@@ -61,6 +64,22 @@ mise completion fish | source
 set -q ntfy_notify_threshold_sec
 or set -g ntfy_notify_threshold_sec 60
 
+# interactive/TUI commands to never notify about, even wrapped in ENV=VAL
+# prefixes or abbr-expanded forms (eg. the claude abbr expands to
+# `ro-env ... -- bash -lic claude`); override with: set -U ntfy_exclude_cmds a b c
+set -q ntfy_exclude_cmds
+or set -g ntfy_exclude_cmds claude vim less bat leaf git
+
+function __ntfy_cmd_excluded -a cmdline -d 'True if any word in cmdline matches ntfy_exclude_cmds'
+    for word in (string split -- ' ' $cmdline)
+        set -l base (string replace -r '^.*/' '' -- $word)
+        if contains -- $base $ntfy_exclude_cmds
+            return 0
+        end
+    end
+    return 1
+end
+
 function __ntfy_on_long_cmd --on-event fish_postexec -d 'Notify via ntfy after a long-running command finishes'
     set -l last_status $status
 
@@ -76,8 +95,12 @@ function __ntfy_on_long_cmd --on-event fish_postexec -d 'Notify via ntfy after a
         return
     end
 
+    if __ntfy_cmd_excluded $argv[1]
+        return
+    end
+
     set -l dur (__duration_human $CMD_DURATION)
-    ntfy "Done: $argv[1]" "$dur (exit $last_status)"
+    ntfy "Done: $argv[1]" "$dur (exit $last_status)" > /dev/null
 end
 
 # asdf
