@@ -56,6 +56,30 @@ set -x MISE_DATA_DIR $HOME/media/data/mise
 mise activate fish | source
 mise completion fish | source
 
+# notify long-running commands via ntfy (requires `ntfy <title> <body>` in PATH)
+# override threshold in seconds with: set -U ntfy_notify_threshold_sec 30
+set -q ntfy_notify_threshold_sec
+or set -g ntfy_notify_threshold_sec 60
+
+function __ntfy_on_long_cmd --on-event fish_postexec -d 'Notify via ntfy after a long-running command finishes'
+    set -l last_status $status
+
+    if not type -q ntfy
+        return
+    end
+
+    if test -z "$CMD_DURATION"
+        return
+    end
+
+    if test "$CMD_DURATION" -lt (math "$ntfy_notify_threshold_sec * 1000")
+        return
+    end
+
+    set -l dur (__duration_human $CMD_DURATION)
+    ntfy "Done: $argv[1]" "$dur (exit $last_status)"
+end
+
 # asdf
 # source ~/.asdf/asdf.fish
 # source ~/.asdf/completions/asdf.fish
