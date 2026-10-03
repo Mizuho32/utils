@@ -375,6 +375,14 @@ function fish_right_prompt -d 'git right prompt'
 
   #echo -n $left_black_arrow_glyph
 
+  # command duration (moved to fish_prompt, shown next to CWD)
+  #if test -n "$CMD_DURATION"
+  #  set_color cyan
+  #  echo -n (__duration_human $CMD_DURATION)
+  #  set_color normal
+  #  echo -n ' '
+  #end
+
   # VCS
   __bobthefish_git_prompt_cache_defaults
 
