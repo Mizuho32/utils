@@ -100,7 +100,8 @@ function __ntfy_on_long_cmd --on-event fish_postexec -d 'Notify via ntfy after a
     end
 
     set -l dur (__duration_human $CMD_DURATION)
-    ntfy "Done: $argv[1]" "$dur (exit $last_status)" > /dev/null
+    set body (printf 'PWD: %s\n%s (exit %d)' "$PWD" "$dur" "$last_status" | string collect)
+    ntfy "Done: $argv[1]" "$body" > /dev/null 2>&1
 end
 
 # asdf
