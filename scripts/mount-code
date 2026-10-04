@@ -7,7 +7,7 @@ NAS=$HOME/media/nas
 
 CODE_SRC=$NAS/prjs/$NAME
 CODE_TRG=$HOME/prjs/$NAME
-CACHE=$HOME/cache/unionfs/$NAME
+CACHE=$HOME/media/cache/unionfs/$NAME
 
 # check already mount
 if $(mount | grep unionfs | grep $NAME > /dev/null); then
