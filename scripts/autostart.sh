@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 #mount $HOME/media/mizuho
-cd $HOME/prjs && ./bin/mount-unionfs.sh
+# unionfs is mounted by unionfs.service (user systemd, also starts homectrl etc. after it).
+# This only waits for it so tmuxinator below doesn't open empty ~/prjs while it's still
+# waiting for NFS; no-op if already active.
+systemctl --user start unionfs.service
 
 #konsole &
 #kitty &
@@ -45,9 +48,3 @@ fi
 
 # pactl list modules
 # pactl unload-module モジュール番号
-
-# tmux copy
-if systemctl --user status tmux_copy.service | head -n3 | grep -i inactive > /dev/null; then
-  # inactive
-  systemctl --user start tmux_copy.service
-fi 
