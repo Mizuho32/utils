@@ -22,6 +22,12 @@
     :"obsidian/user-flags.conf":            :".config/obsidian/user-flags.conf"
     :"plasma-envs/mise.sh":                 :".config/plasma-workspace/env/mise.sh"
     #:"plasma-envs/fcitx.sh":         :".config/plasma-workspace/env/fcitx.sh"
+    :"flatpak/applications/com.vivaldi.Vivaldi.desktop": :".local/share/applications/com.vivaldi.Vivaldi.desktop"
+    :"flatpak/systemd/app-flatpak-com.vivaldi.Vivaldi-.scope.d/limits.conf": :".config/systemd/user/app-flatpak-com.vivaldi.Vivaldi-.scope.d/limits.conf"
 :before_install:
 - "./before_install.rb"
 - "./fish/fish_logo_install.bash"
+- "./flatpak/before_install.rb"
+:after_install:
+- "systemctl --user daemon-reload"
+- "kbuildsycoca6"
