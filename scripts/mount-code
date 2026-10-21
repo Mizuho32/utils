@@ -1,28 +1,371 @@
 #!/usr/bin/env bash
 
-# Integrate code on slow storage (NAS) and cache (vendor/bundle, node_modules, ...) on fast local storage by using unionfs
+# Integrate code on slow storage (NAS) and cache (vendor/bundle, node_modules, ...) on fast local storage by using mergerfs
+#
+#   $NAS/prjs/NAME (branch 1) + $CACHE/NAME (branch 2) -> $HOME/prjs/NAME
+#
+# category.create=epff: new files go to the first branch where the parent dir exists,
+# so a path that exists only in the cache branch keeps everything under it local.
+# Mount targets are listed in the "## Mounts" section of $LIST (one "- NAME" per line).
 
-NAME=$1
-NAS=$HOME/media/nas
+set -u
 
-CODE_SRC=$NAS/prjs/$NAME
-CODE_TRG=$HOME/prjs/$NAME
-CACHE=$HOME/media/cache/unionfs/$NAME
+NAS=${MOUNT_CODE_NAS:-$HOME/media/nas}
+SRC=${MOUNT_CODE_SRC:-$NAS/prjs}
+TRG=${MOUNT_CODE_TRG:-$HOME/prjs}
+CACHE=${MOUNT_CODE_CACHE:-$HOME/media/cache/unionfs}
+LIST=${MOUNT_CODE_LIST:-$TRG/README.md}
 
-# check already mount
-if $(mount | grep unionfs | grep $NAME > /dev/null); then
-  echo $NAME already mounted
-  exit 0
-fi
+DRY=
+ERR=0
 
-for path in ${CODE_SRC} ${CODE_TRG} ${CACHE}
-do
-  if ! [ -d $path ]; then
-    echo $path does not exist. Make it.
-    mkdir -p $path
-    #exit 1
+usage() {
+  cat <<EOF
+usage: ${0##*/} <command> [args]
+
+  mount   all|NAME...         mount projects (all: listed in $LIST)
+  umount  all|NAME...         unmount projects
+  status                      show mount state of listed projects
+  list                        print listed project names
+  cache   [-n] PATH...        move PATH from NAS to local cache (-n: dry run)
+  uncache [-n] PATH...        move PATH from local cache back to NAS
+  cached  [NAME...]           show paths that live only in the cache
+  cache-ls [LS_OPTS] [PATH...] ls the cache side of PATH (default: current dir)
+  cache-path [PATH...]        print the cache side of PATH (default: current dir)
+
+PATH may be given under $TRG, $SRC or $CACHE.
+EOF
+}
+
+err() {
+  echo "error: $*" >&2
+  ERR=1
+}
+
+run() {
+  if [ -n "$DRY" ]; then
+    echo "  [dry] $*"
+  else
+    "$@"
   fi
-done
+}
 
-unionfs $CODE_SRC=RW:$CACHE=RW $CODE_TRG
-echo mounted $NAME
+list_names() {
+  [ -f "$LIST" ] || { echo "error: $LIST not found" >&2; exit 1; }
+  awk '/^## /{f=($0=="## Mounts")} f && /^- /{gsub(/`/,""); print $2}' "$LIST"
+}
+
+# expand "all" into listed names
+names() {
+  if [ "$#" -eq 1 ] && [ "$1" = all ]; then
+    list_names
+  elif [ "$#" -eq 0 ]; then
+    echo "error: specify NAME... or all" >&2
+    exit 1
+  else
+    printf '%s\n' "$@"
+  fi
+}
+
+fstype() {
+  findmnt -no FSTYPE --mountpoint "$1" 2>/dev/null | head -n1
+}
+
+do_mount() {
+  local name=$1
+  local src=$SRC/$name trg=$TRG/$name cache=$CACHE/$name
+
+  if mountpoint -q "$trg"; then
+    echo "$name: already mounted ($(fstype "$trg"))"
+    return
+  fi
+  # don't mkdir on local disk while NFS is not up yet
+  if ! mountpoint -q "$NAS"; then
+    err "$name: $NAS is not mounted"
+    return
+  fi
+  if [ -d "$trg" ] && [ -n "$(ls -A "$trg")" ]; then
+    err "$name: $trg is not empty"
+    return
+  fi
+  for path in "$src" "$trg" "$cache"; do
+    if ! [ -d "$path" ]; then
+      echo "$name: $path does not exist. Make it."
+      mkdir -p "$path" || { err "$name: mkdir $path failed"; return; }
+    fi
+  done
+
+  if mergerfs -o "category.create=epff,fsname=mount-code:$name" "$src:$cache" "$trg"; then
+    echo "$name: mounted"
+  else
+    err "$name: mergerfs failed"
+  fi
+}
+
+do_umount() {
+  local name=$1
+  local trg=$TRG/$name
+
+  if ! mountpoint -q "$trg"; then
+    echo "$name: not mounted"
+    return
+  fi
+  if fusermount3 -u "$trg"; then
+    echo "$name: unmounted"
+  else
+    err "$name: unmount failed (busy? check: fuser -vm $trg)"
+  fi
+}
+
+do_status() {
+  local name trg
+  for name in "${NAMES[@]}"; do
+    trg=$TRG/$name
+    if mountpoint -q "$trg"; then
+      printf '%-20s %s\n' "$name" "$(fstype "$trg")"
+    else
+      printf '%-20s %s\n' "$name" "-"
+    fi
+  done
+}
+
+# split PATH into project name and path relative to the project
+# sets globals P_NAME, P_REL
+resolve() {
+  local abs root rest
+  # -s: don't follow symlinks (the path itself may be a symlink to move)
+  abs=$(realpath -ms -- "$1")
+  for root in "$TRG" "$SRC" "$CACHE"; do
+    root=$(realpath -ms -- "$root")
+    case $abs in
+      "$root"/*)
+        rest=${abs#"$root"/}
+        P_NAME=${rest%%/*}
+        if [ "$P_NAME" = "$rest" ]; then
+          err "$1: project root itself cannot be moved"
+          return 1
+        fi
+        P_REL=${rest#*/}
+        if ! [ -d "$SRC/$P_NAME" ]; then
+          err "$1: $SRC/$P_NAME is not a project"
+          return 1
+        fi
+        return 0
+        ;;
+    esac
+  done
+  err "$1: not under $TRG, $SRC or $CACHE"
+  return 1
+}
+
+# move REL of project NAME from branch FROM to branch TO
+# parent dirs are created in TO with the same mode as in FROM
+# if REL is a dir in both branches, its entries are moved one by one (merge)
+move_branch() {
+  local name=$1 rel=$2 from=$3/$1 to=$4/$1
+  local src=$from/$rel dst=$to/$rel tmp dir cur part parts child rc
+
+  if ! [ -e "$src" ] && ! [ -L "$src" ]; then
+    err "$name/$rel: not found in $from"
+    return 1
+  fi
+  if [ -e "$dst" ] || [ -L "$dst" ]; then
+    if ! [ -d "$src" ] || [ -L "$src" ] || ! [ -d "$dst" ] || [ -L "$dst" ]; then
+      err "$name/$rel: already exists in $to"
+      return 1
+    fi
+    echo "$name/$rel: dir exists in both branches, merging"
+    rc=0
+    for child in "$src"/* "$src"/.[!.]* "$src"/..?*; do
+      [ -e "$child" ] || [ -L "$child" ] || continue
+      move_branch "$name" "$rel/${child##*/}" "$3" "$4" || rc=1
+    done
+    if [ "$rc" -ne 0 ]; then
+      err "$name/$rel: not fully merged, $src left"
+      return 1
+    fi
+    run rmdir -- "$src" || { err "$name/$rel: removing $src failed"; return 1; }
+    return 0
+  fi
+
+  echo "$name/$rel: $from -> $to"
+
+  # create parent dirs one by one, copying mode from the source branch
+  dir=$(dirname -- "$rel")
+  cur=
+  if [ "$dir" != . ]; then
+    IFS=/ read -ra parts <<< "$dir"
+    for part in "${parts[@]}"; do
+      cur=${cur:+$cur/}$part
+      if [ -d "$to/$cur" ]; then
+        continue
+      elif [ -e "$to/$cur" ] || [ -L "$to/$cur" ]; then
+        err "$name/$cur: exists in $to but is not a directory"
+        return 1
+      fi
+      run mkdir -- "$to/$cur" || return 1
+      run chmod --reference="$from/$cur" -- "$to/$cur" || return 1
+    done
+  fi
+
+  # copy to a temp name first so an interrupted copy never looks like a finished one
+  tmp=$(dirname -- "$dst")/.mount-code.$$.$(basename -- "$dst")
+  run cp -a -- "$src" "$tmp" || { run rm -rf -- "$tmp"; err "$name/$rel: copy failed"; return 1; }
+  run mv -T -- "$tmp" "$dst" || { err "$name/$rel: rename failed, copy left at $tmp"; return 1; }
+  run rm -rf -- "$src" || { err "$name/$rel: copied, but removing $src failed"; return 1; }
+}
+
+# remove now-empty parent dirs of REL in BRANCH/NAME (never the project root)
+prune_parents() {
+  local base=$2/$1 dir
+  dir=$(dirname -- "$3")
+  while [ "$dir" != . ] && [ -d "$base/$dir" ] && [ -z "$(ls -A "$base/$dir")" ]; do
+    run rmdir -- "$base/$dir" || break
+    dir=$(dirname -- "$dir")
+  done
+}
+
+do_move() {
+  local direction=$1 p
+  shift
+  if [ "${1:-}" = -n ]; then
+    DRY=1
+    shift
+  fi
+  [ "$#" -gt 0 ] || { usage >&2; exit 1; }
+
+  for p in "$@"; do
+    resolve "$p" || continue
+    if [ "$direction" = cache ]; then
+      move_branch "$P_NAME" "$P_REL" "$SRC" "$CACHE"
+    else
+      move_branch "$P_NAME" "$P_REL" "$CACHE" "$SRC" && prune_parents "$P_NAME" "$CACHE" "$P_REL"
+    fi
+  done
+}
+
+# walk the cache branch and print paths that don't exist on NAS
+walk_cached() {
+  local name=$1 rel=$2 entry r
+  for entry in "$CACHE/$name/$rel"* "$CACHE/$name/$rel".[!.]* "$CACHE/$name/$rel"..?*; do
+    [ -e "$entry" ] || [ -L "$entry" ] || continue
+    r=${entry#"$CACHE/$name/"}
+    if ! [ -e "$SRC/$name/$r" ] && ! [ -L "$SRC/$name/$r" ]; then
+      echo "$name/$r"
+    elif [ -d "$entry" ] && ! [ -L "$entry" ] && [ -d "$SRC/$name/$r" ] && ! [ -L "$SRC/$name/$r" ]; then
+      walk_cached "$name" "$r/"
+    else
+      echo "$name/$r  (CONFLICT: exists in both branches, NAS wins)"
+    fi
+  done
+}
+
+do_cached() {
+  local name
+  for name in "${NAMES[@]}"; do
+    [ -d "$CACHE/$name" ] && walk_cached "$name" ""
+  done
+}
+
+cmd=${1:-}
+[ "$#" -gt 0 ] && shift
+
+# map PATH under $TRG/$SRC/$CACHE to the same path in $CACHE (project root allowed)
+to_cache() {
+  local abs root
+  abs=$(realpath -ms -- "$1")
+  for root in "$TRG" "$SRC" "$CACHE"; do
+    root=$(realpath -ms -- "$root")
+    case $abs in
+      "$root"|"$root"/*)
+        echo "$CACHE${abs#"$root"}"
+        return 0
+        ;;
+    esac
+  done
+  # bare project name from anywhere
+  if [ -d "$CACHE/$1" ]; then
+    echo "$CACHE/$1"
+    return 0
+  fi
+  return 1
+}
+
+do_cache_ls() {
+  local opts=() paths=() a p dashdash=
+  for a in "$@"; do
+    if [ -z "$dashdash" ] && [ "$a" = -- ]; then
+      dashdash=1
+    elif [ -z "$dashdash" ] && [[ $a == -* ]]; then
+      opts+=("$a")
+    elif p=$(to_cache "$a"); then
+      paths+=("$p")
+    else
+      err "$a: not under $TRG, $SRC or $CACHE"
+    fi
+  done
+  if [ "${#paths[@]}" -eq 0 ]; then
+    [ "$ERR" -ne 0 ] && return
+    p=$(to_cache .) || p=$CACHE
+    paths=("$p")
+  fi
+  ls "${opts[@]}" -- "${paths[@]}" || ERR=1
+}
+
+do_cache_path() {
+  local a p
+  [ "$#" -gt 0 ] || set -- .
+  for a in "$@"; do
+    if p=$(to_cache "$a"); then
+      echo "$p"
+    else
+      err "$a: not under $TRG, $SRC or $CACHE"
+    fi
+  done
+}
+
+# NAMES: project names to operate on (exits here on error, not inside a subshell)
+load_names() {
+  mapfile -t NAMES < <(names "$@")
+  [ "${#NAMES[@]}" -gt 0 ] || exit 1
+}
+
+case $cmd in
+  mount)
+    load_names "$@"
+    for n in "${NAMES[@]}"; do do_mount "$n"; done
+    ;;
+  umount|unmount)
+    load_names "$@"
+    for n in "${NAMES[@]}"; do do_umount "$n"; done
+    ;;
+  status)
+    load_names all
+    do_status
+    ;;
+  list)
+    list_names
+    ;;
+  cache|uncache)
+    do_move "$cmd" "$@"
+    ;;
+  cached)
+    load_names "${@:-all}"
+    do_cached
+    ;;
+  cache-ls)
+    do_cache_ls "$@"
+    ;;
+  cache-path)
+    do_cache_path "$@"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    usage >&2
+    exit 1
+    ;;
+esac
+
+exit $ERR
