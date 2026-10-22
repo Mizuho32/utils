@@ -135,7 +135,7 @@ abbr xo 'xdg-open'
 abbr fu 'flatpak update'
 abbr fr 'flatpak run'
 abbr copilot 'ro-env $PWD /tmp $HOME/.cache $HOME/.copilot -- copilot'
-abbr claude 'ro-env $PWD /tmp $HOME/.cache $HOME/.config/claude -- /usr/bin/env CLAUDE_CONFIG_DIR=$CLAUDE_CONFIG_DIR /usr/bin/bash -lic claude'
+abbr claude 'ro-env --bwrap --keep-env $PWD /tmp $HOME/.cache $HOME/.config/claude -- /usr/bin/env CLAUDE_CONFIG_DIR=$CLAUDE_CONFIG_DIR /usr/bin/bash -lic claude'
 abbr qidiprint '$HOME/Applications/QIDI_Print-6.5.0_0b2d01a5ff7e19e384b6fb56d1afbc5b.AppImage >/dev/null 2>&1 &'
 abbr swapuse 'swapon --show; echo; zramctl; echo; awk \\'/^Pid:/{p=$2} /^VmSwap:/{if($2>0) print $2*1024, p}\\' /proc/*/status 2>/dev/null | sort -nr | head -n10 | while read s p; printf \\'%6s  \\' (numfmt --to=iec $s); ps -o pid=,user=,args= -p $p; end'
 
