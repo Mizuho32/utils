@@ -2,8 +2,12 @@
 
 rw=()
 cmd=()
+bwrap=
+keep_env=
 
 # "--" までをReadWritePaths、それ以降をコマンド
+# --bwrap: systemd-run の代わりに bwrap で実行 (呼び出し元の子プロセスのまま動く)
+# --keep-env: (--bwrap 時のみ) 呼び出し元の環境変数をそのまま引き継ぐ
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --)
@@ -11,12 +15,60 @@ while [[ $# -gt 0 ]]; do
       cmd=("$@")
       break
       ;;
+    --bwrap)
+      bwrap=1
+      shift
+      ;;
+    --keep-env)
+      keep_env=1
+      shift
+      ;;
     *)
       rw+=("$1")
       shift
       ;;
   esac
 done
+
+if [[ -n $keep_env && -z $bwrap ]]; then
+  echo "ro-env: --keep-env requires --bwrap" >&2
+  exit 2
+fi
+
+if [[ -n $bwrap ]]; then
+  # systemd-run に合わせて環境変数は user manager のもの + TERM/COLORTERM のみ
+  envs=()
+  [[ -z $keep_env ]] && while IFS= read -r line; do
+    k=${line%%=*}
+    v=${line#*=}
+    if [[ $v =~ ^\$\'(.*)\'$ ]]; then
+      printf -v v '%b' "${BASH_REMATCH[1]}"
+    fi
+    envs+=("--setenv" "$k" "$v")
+  done < <(systemctl --user show-environment)
+  if [[ -z $keep_env ]]; then
+    envs=("--clearenv" "${envs[@]}")
+    for k in TERM COLORTERM; do
+      [[ -n ${!k:-} ]] && envs+=("--setenv" "$k" "${!k}")
+    done
+  fi
+
+  args=()
+  for p in "${rw[@]}"; do
+    args+=("--bind-try" "$p" "$p")
+  done
+
+  # ProtectSystem=strict + BindReadOnlyPaths=$HOME 相当: / 全体を ro、/dev /proc は使えるように
+  exec bwrap \
+    --ro-bind / / \
+    --dev-bind /dev /dev \
+    --proc /proc \
+    "${args[@]}" \
+    "${envs[@]}" \
+    --chdir "$PWD" \
+    --die-with-parent \
+    -- "${cmd[@]}"
+fi
 
 # systemd-run 実行
 args=()
