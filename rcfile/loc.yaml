@@ -22,6 +22,7 @@
     :"obsidian/user-flags.conf":            :".config/obsidian/user-flags.conf"
     :"plasma-envs/mise.sh":                 :".config/plasma-workspace/env/mise.sh"
     #:"plasma-envs/fcitx.sh":         :".config/plasma-workspace/env/fcitx.sh"
+    :"herdr/config.toml":                   :".config/herdr/config.toml"
     :"flatpak/applications/com.vivaldi.Vivaldi.desktop": :".local/share/applications/com.vivaldi.Vivaldi.desktop"
     :"flatpak/systemd/app-flatpak-com.vivaldi.Vivaldi-.scope.d/limits.conf": :".config/systemd/user/app-flatpak-com.vivaldi.Vivaldi-.scope.d/limits.conf"
 :before_install:
