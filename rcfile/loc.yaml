@@ -32,3 +32,5 @@
 :after_install:
 - "systemctl --user daemon-reload"
 - "kbuildsycoca6"
+# herdr has no plugin dir auto-discovery; registry is ~/.config/herdr/plugins.json (link is idempotent)
+- "command -v herdr >/dev/null && herdr plugin link ./herdr/plugins/notify-send >/dev/null"
