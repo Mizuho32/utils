@@ -71,7 +71,9 @@ set -qg status-interval 1
 set -qg status-left "#[fg=colour000,bold][#S]@#H"
 set -qg status-left-length 30
 	# right
-set -qg status-right "#[bg=colour002,fg=colour015,bold]%m/%d(%a)%H:%M:%S #(tmux show-option -g prefix | sed 's/^prefix //')#[default]"
+# global
+#set -qg status-right "#[bg=colour002,fg=colour015,bold]%m/%d(%a)%H:%M:%S #(tmux show-option -g prefix | sed 's/^prefix //')#[default]"
+set -qg status-right ".#[bg=colour002,fg=colour015,bold]%m/%d(%a)%H:%M:%S #{prefix}#[default]"
 #set -qg status-right-length 256
 	# window caption
 set -g window-status-format "#[fg=colour000,bold] #I:#W"
