@@ -58,7 +58,7 @@ fi
 # Tmux select
 tmux_ls=$(tmux ls)
 tmux_ls_status=$?
-if  [ -z "$TMUX" ] && [ "$tmux_ls_status" = '0' ]; then
+if  [ -z "$TMUX" ] && [ -z "$HERDR_ENV" ] && [ "$tmux_ls_status" = '0' ]; then
 
 
   if [ $? -eq 0 ]; then
