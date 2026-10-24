@@ -1,0 +1,10 @@
+# kitty --session file used by autostart.sh
+# new_tab <title> pins the tab title (not overwritten by tmux etc.)
+
+new_tab tmux
+launch bash -c "$HOME/bin/startprefix -c 'for s in system apps remotes claudes; tmuxinator start $s --no-attach; end'; $HOME/bin/startprefix"
+focus
+
+# claudes session is created by tab 1 (tmuxinator); wait for it (max 30s) then attach
+new_tab claudes
+launch bash -c "$HOME/bin/startprefix -c 'for i in (seq 60); tmux has -t claudes 2>/dev/null; and break; sleep 0.5; end; tmux a -t claudes'; $HOME/bin/startprefix"

@@ -10,7 +10,9 @@ systemctl --user start unionfs.service
 #kitty &
 # like: bash -c 'startprefix -c 'cmds';startprefix'
 # for s in  system apps remotes; tmuxinator start $s --no-attach; end # launch sessions
-kitty bash -c '$HOME/bin/startprefix -c '"'"'for s in system apps remotes;tmuxinator start $s --no-attach; end'"'"';$HOME/bin/startprefix'&
+#kitty bash -c '$HOME/bin/startprefix -c '"'"'for s in system apps remotes;tmuxinator start $s --no-attach; end'"'"';$HOME/bin/startprefix'&
+# tab1: tmux (tmuxinator), tab2: tmux a -t claudes
+kitty --session "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/autostart.kitty-session"&
 
 sleep 10
 
