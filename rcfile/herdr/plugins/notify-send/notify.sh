@@ -21,11 +21,23 @@ last_file=$state_dir/last-status.$key
 prev=$(cat "$last_file" 2>/dev/null)
 echo "$status" > "$last_file"
 
+# true if the autostart kitty has focus and shows the claudes tab (true when unknown)
+kitty_viewing() {
+  local sock=${XDG_RUNTIME_DIR:-/run/user/$UID}/kitty-autostart ls
+  [[ -S $sock ]] || return 0
+  ls=$(kitten @ --to "unix:$sock" ls 2>/dev/null) || return 0
+  [[ $(jq -r '.[] | select(.is_focused) | .tabs[] | select(.is_focused) | .title' <<< "$ls") == claudes ]]
+}
+
 case $status in
   # only blocked while working (skip prompts right after claude starts)
   blocked) [[ $prev == working ]] || exit 0
            urgency=critical; label='入力待ち' ;;
   done)    urgency=normal;   label='完了' ;;
+  # herdr reports idle (not done) for the pane shown in herdr; notify anyway
+  # unless that is really on screen (kitty focused and on the claudes tab)
+  idle)    [[ $prev == working ]] && ! kitty_viewing || exit 0
+           urgency=normal;   label='完了' ;;
   *) exit 0 ;;
 esac
 
