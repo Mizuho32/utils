@@ -27,8 +27,8 @@ flatpak run org.audacityteam.Audacity&
 sleep 1
 
 # pavucontrol &
-flatpak run org.pulseaudio.pavucontrol&
-sleep 1
+# flatpak run org.pulseaudio.pavucontrol&
+# sleep 1
 
 pgrep dolphin || dolphin &
 sleep 1
