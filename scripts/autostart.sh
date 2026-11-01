@@ -12,7 +12,10 @@ systemctl --user start unionfs.service
 # for s in  system apps remotes; tmuxinator start $s --no-attach; end # launch sessions
 #kitty bash -c '$HOME/bin/startprefix -c '"'"'for s in system apps remotes;tmuxinator start $s --no-attach; end'"'"';$HOME/bin/startprefix'&
 # tab1: tmux (tmuxinator), tab2: tmux a -t claudes
-kitty --session "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/autostart.kitty-session"&
+# remote control only for this kitty, via a socket in $XDG_RUNTIME_DIR;
+# used by rcfile/herdr/plugins/notify-send/focus.sh to switch tabs
+kitty -o allow_remote_control=socket-only --listen-on "unix:$XDG_RUNTIME_DIR/kitty-autostart" \
+  --session "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/autostart.kitty-session"&
 
 sleep 10
 
