@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # herdr event hook: pane.agent_status_changed -> notify-send (KDE Plasma)
+# overview: README.md
 # link: herdr plugin link ~/utils/rcfile/herdr/plugins/notify-send
 
 state_dir=${HERDR_PLUGIN_STATE_DIR:-/tmp}
