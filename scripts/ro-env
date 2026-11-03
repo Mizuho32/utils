@@ -63,6 +63,7 @@ if [[ -n $bwrap ]]; then
     --ro-bind / / \
     --dev-bind /dev /dev \
     --proc /proc \
+    --unshare-user --disable-userns \
     "${args[@]}" \
     "${envs[@]}" \
     --chdir "$PWD" \

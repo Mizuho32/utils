@@ -1,0 +1,10 @@
+# Ubuntu 23.10+ の unprivileged userns 制限 (kernel.apparmor_restrict_unprivileged_userns=1) で
+# bwrap が "setting up uid map: Permission denied" になるのを回避する
+abi <abi/4.0>,
+include <tunables/global>
+
+profile bwrap /usr/bin/bwrap flags=(unconfined) {
+  userns,
+
+  include if exists <local/bwrap>
+}
