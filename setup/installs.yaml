@@ -9,6 +9,7 @@
   - tig-colors-neonwolf
 # - htop
 # - kitty
+  - mergerfs
 # clean
 # - fish
 # - gvim
@@ -102,6 +103,7 @@
   - virtualbox
   - wl-clipboard
   - pacman-contrib
+  - intel-gpu-tools
 # clean
 # - evince
 # - poppler-data
@@ -149,7 +151,14 @@
   - hexyl
   - procs
   - ripgrep
+:gem install:
+  - tmuxinator
 :npx:
   - md-review
 :go install:
   - github.com/charmbracelet/glow/v2@latest
+    #:kde:
+    #  - yakuake
+:mise use -g:
+  - github:shibadogcap/dpgk
+  - herdr

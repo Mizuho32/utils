@@ -1,7 +1,21 @@
 #!/usr/bin/env bash
 
+#mount $HOME/media/mizuho
+# unionfs is mounted by unionfs.service (user systemd, also starts homectrl etc. after it).
+# This only waits for it so tmuxinator below doesn't open empty ~/prjs while it's still
+# waiting for NFS; no-op if already active.
+systemctl --user start unionfs.service
+
 #konsole &
-kitty &
+#kitty &
+# like: bash -c 'startprefix -c 'cmds';startprefix'
+# for s in  system apps remotes; tmuxinator start $s --no-attach; end # launch sessions
+#kitty bash -c '$HOME/bin/startprefix -c '"'"'for s in system apps remotes;tmuxinator start $s --no-attach; end'"'"';$HOME/bin/startprefix'&
+# tab1: tmux (tmuxinator), tab2: tmux a -t claudes
+# remote control only for this kitty, via a socket in $XDG_RUNTIME_DIR;
+# used by rcfile/herdr/plugins/notify-send/focus.sh to switch tabs
+kitty -o allow_remote_control=socket-only --listen-on "unix:$XDG_RUNTIME_DIR/kitty-autostart" \
+  --session "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/autostart.kitty-session"&
 
 sleep 10
 
@@ -13,10 +27,14 @@ flatpak run org.audacityteam.Audacity&
 sleep 1
 
 # pavucontrol &
-flatpak run org.pulseaudio.pavucontrol&
+# flatpak run org.pulseaudio.pavucontrol&
+# sleep 1
+
+pgrep dolphin || dolphin &
 sleep 1
 
-dolphin &
+#flatpak run moe.emmaexe.ntfyDesktop&
+pgrep ntfyDesktop || ntfyDesktop&
 sleep 1
 
 #discord --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-wayland-ime &
@@ -35,7 +53,3 @@ fi
 
 # pactl list modules
 # pactl unload-module モジュール番号
-
-
-#mount $HOME/media/mizuho
-$HOME/prjs/bin/mount-unionfs.sh

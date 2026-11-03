@@ -39,6 +39,9 @@ set fish_pager_color_description B3A06D
 set fish_pager_color_prefix white --bold --underline
 set fish_pager_color_progress white --background=cyan
 
+# Ntfy after long time run
+# set -U ntfy_notify_threshold_sec 1
+
 <%= custom cstm_head: (<<-"CUSTOM"
 if string match -q "/opt/gentoo_prefix/*" $SHELL
   source /opt/gentoo_prefix/x86_64/etc/profile.env
@@ -56,6 +59,51 @@ end
 set -x MISE_DATA_DIR $HOME/media/data/mise
 mise activate fish | source
 mise completion fish | source
+
+# notify long-running commands via ntfy (requires `ntfy <title> <body>` in PATH)
+# override threshold in seconds with: set -U ntfy_notify_threshold_sec 30
+set -q ntfy_notify_threshold_sec
+or set -g ntfy_notify_threshold_sec 60
+
+# interactive/TUI commands to never notify about, even wrapped in ENV=VAL
+# prefixes or abbr-expanded forms (eg. the claude abbr expands to
+# `ro-env ... -- bash -lic claude`); override with: set -U ntfy_exclude_cmds a b c
+set -q ntfy_exclude_cmds
+or set -g ntfy_exclude_cmds claude vim less bat leaf git
+
+function __ntfy_cmd_excluded -a cmdline -d 'True if any word in cmdline matches ntfy_exclude_cmds'
+    for word in (string split -- ' ' $cmdline)
+        set -l base (string replace -r '^.*/' '' -- $word)
+        if contains -- $base $ntfy_exclude_cmds
+            return 0
+        end
+    end
+    return 1
+end
+
+function __ntfy_on_long_cmd --on-event fish_postexec -d 'Notify via ntfy after a long-running command finishes'
+    set -l last_status $status
+
+    if not type -q ntfy
+        return
+    end
+
+    if test -z "$CMD_DURATION"
+        return
+    end
+
+    if test "$CMD_DURATION" -lt (math "$ntfy_notify_threshold_sec * 1000")
+        return
+    end
+
+    if __ntfy_cmd_excluded $argv[1]
+        return
+    end
+
+    set -l dur (__duration_human $CMD_DURATION)
+    set body (printf 'PWD: %s\n%s (exit %d)' "$PWD" "$dur" "$last_status" | string collect)
+    ntfy "Done: $argv[1]" "$body" > /dev/null 2>&1
+end
 
 # asdf
 # source ~/.asdf/asdf.fish
@@ -90,6 +138,14 @@ abbr gl 'git log'
 abbr nvenc "sys-env ffmpeg_nv -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 -c:a copy -c:v hevc_nvenc output.mp4"
 abbr vaapi "sys-env time ffmpeg_va -vaapi_device /dev/dri/renderD128 -i input.mp4 -vf 'format=nv12,hwupload' -c:v av1_vaapi -b:v 3M -c:a opus -b:a 64k -strict -2 output.webm"
 abbr xpu-smi-loop "while true; echo ---; xpu-smi stats -d 0 | grep -E 'GPU.+(Used|Power|Freq)|(te\sEn)'; sleep 2; end"
+abbr xo 'xdg-open'
+abbr fu 'flatpak update'
+abbr fr 'flatpak run'
+abbr copilot 'ro-env $PWD /tmp $HOME/.cache $HOME/.copilot -- copilot'
+abbr claude 'ro-env --bwrap --keep-env $PWD /tmp $HOME/.cache $HOME/.config/claude $MISE_DATA_DIR/installs/node -- /usr/bin/env CLAUDE_CONFIG_DIR=$CLAUDE_CONFIG_DIR /usr/bin/bash -lic claude'
+abbr qidiprint '$HOME/Applications/QIDI_Print-6.5.0_0b2d01a5ff7e19e384b6fb56d1afbc5b.AppImage >/dev/null 2>&1 &'
+abbr swapuse 'swapon --show; echo; zramctl; echo; awk \\'/^Pid:/{p=$2} /^VmSwap:/{if($2>0) print $2*1024, p}\\' /proc/*/status 2>/dev/null | sort -nr | head -n10 | while read s p; printf \\'%6s  \\' (numfmt --to=iec $s); ps -o pid=,user=,args= -p $p; end'
+abbr suspend-qdbus 'qdbus6 org.kde.Solid.PowerManagement /org/freedesktop/PowerManagement CanSuspend && qdbus6 org.kde.Solid.PowerManagement /org/freedesktop/PowerManagement Suspend'
 
 
 CUSTOM

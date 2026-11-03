@@ -86,6 +86,6 @@ unless result.empty?
   File.write(cache_path, last_times.to_yaml)
 end
 rescue StandardError => ex
-  puts(ex.message, ex.backtrace.join("\n"))
+  puts(?! + ex.message, ex.backtrace.join("\n"))
   exit 1
 end

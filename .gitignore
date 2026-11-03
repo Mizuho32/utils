@@ -3,6 +3,7 @@ tmp/
 .*swo
 venv/
 *env.sh
+mise.toml
 
 backups/
 backups.yaml

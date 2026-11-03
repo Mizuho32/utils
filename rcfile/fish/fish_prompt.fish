@@ -10,7 +10,17 @@ function fish_prompt
     echo
     set_color -o yellow
     #echo -n :(prompt_pwd)
-    echo '['(pwd|sed "s=$HOME=~=")']'
+    echo -n '['(pwd|sed "s=$HOME=~=")']'
+
+    # show previous command duration
+    if test -n "$CMD_DURATION"
+        set_color normal
+        echo -n ' '
+        set_color cyan
+        echo -n (__duration_human $CMD_DURATION)
+    end
+    set_color normal
+    echo
 
     # show user
     set_color -o green # -o bold
