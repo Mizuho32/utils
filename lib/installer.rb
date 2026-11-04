@@ -3,6 +3,7 @@ require 'pathname'
 require 'yaml'
 
 require_relative 'util'
+require_relative 'host'
 
 if not defined? DEBUG and ENV.include?("DEBUG")
   DEBUG = true
@@ -17,7 +18,9 @@ def to_source_path(cur, source_name)
   if source_name[0] == ?/ then
     return Pathname(source_name)
   else
-    return Pathname(cur) / source_name
+    # hosts/<hostname>/<component>/ takes priority over <component>/
+    host_path = Host.dir(cur) / source_name
+    return host_path.exist? ? host_path : Pathname(cur) / source_name
   end
 end
 
