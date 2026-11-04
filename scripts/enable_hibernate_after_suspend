@@ -1,0 +1,307 @@
+#!/usr/bin/env ruby
+#coding: utf-8
+# ● scripts/enable_hibernate_after_suspend を更新しました。通常の suspend も suspend-then-hibernate
+#   に流すようにして、時間指定は 2 を 2h 扱い、1d2h3m4s のような複合指定にも対応しました。
+# 
+#   具体的には、/etc/systemd/sleep.conf.d/90-hibernate-after-suspend.conf に HibernateDelaySec=を入れるだけでなく、/etc/systemd/system/systemd-suspend.service.d/override.conf を対話式で作って systemd-suspend.service のExecStart をsuspend-then-hibernate に差し替えます。
+#   どちらも /tmp に案を作って diff を見せ、yのときだけ反映する冪等な実装です。
+#   適用後は systemctl suspend でも systemctl suspend-then-hibernate でも同じ動きになります。
+
+
+# Configure systemd suspend-then-hibernate and redirect plain suspend to it.
+
+require 'open3'
+require 'time'
+
+SLEEP_DROPIN_DIR = '/etc/systemd/sleep.conf.d'
+SLEEP_DROPIN_PATH = File.join(SLEEP_DROPIN_DIR, '90-hibernate-after-suspend.conf')
+SUSPEND_OVERRIDE_DIR = '/etc/systemd/system/systemd-suspend.service.d'
+SUSPEND_OVERRIDE_PATH = File.join(SUSPEND_OVERRIDE_DIR, 'override.conf')
+GRUB_PATH = '/etc/default/grub'
+ARCH_MKINITCPIO_PATH = '/etc/mkinitcpio.conf'
+UBUNTU_RESUME_PATH = '/etc/initramfs-tools/conf.d/resume'
+
+def abort_with(message)
+  warn message
+  exit 1
+end
+
+def run!(*command, stdin_data: nil, allowed_exit_codes: [0])
+  out, status = Open3.capture2e(*command, stdin_data: stdin_data)
+  return out if allowed_exit_codes.include?(status.exitstatus)
+
+  abort_with <<~EOF
+    Command failed: #{command.join(' ')}
+    #{out}
+  EOF
+end
+
+def usage
+  <<~EOF
+    Usage:
+      enable_hibernate_after_suspend [delay]
+
+    Examples:
+      enable_hibernate_after_suspend
+      enable_hibernate_after_suspend 2
+      enable_hibernate_after_suspend 30m
+      enable_hibernate_after_suspend 1d2h3m4s
+
+    This configures systemd suspend-then-hibernate for Ubuntu or Arch Linux.
+    Plain suspend is redirected to suspend-then-hibernate too.
+    Hibernate/resume must already be enabled.
+  EOF
+end
+
+def command_exists?(name)
+  ENV.fetch('PATH', '').split(File::PATH_SEPARATOR).any? do |dir|
+    path = File.join(dir, name)
+    File.file?(path) && File.executable?(path)
+  end
+end
+
+def parse_os_release
+  File.read('/etc/os-release')
+    .lines
+    .map(&:strip)
+    .reject { |line| line.empty? || line.start_with?('#') }
+    .filter_map { |line| line.split('=', 2) if line.include?('=') }
+    .to_h
+    .transform_values { |value| value.gsub(/\A["']|["']\z/, '') }
+end
+
+def detect_distro
+  data = parse_os_release
+  tags = [data['ID'], data['ID_LIKE']].compact.join(' ').downcase
+  return :ubuntu if tags.include?('ubuntu') || tags.include?('debian')
+  return :arch if tags.include?('arch')
+
+  abort_with("Unsupported distribution: #{data['PRETTY_NAME'] || data['ID'] || 'unknown'}")
+end
+
+def ensure_commands!
+  required = %w[systemctl diff sudo install cp swapon]
+  missing = required.reject { |name| command_exists?(name) }
+  abort_with("Required commands are missing: #{missing.join(', ')}") unless missing.empty?
+end
+
+def parse_duration(input)
+  value = input.to_s.strip
+  value = '2' if value.empty?
+  return ["#{value}h", value.to_i * 3600] if value.match?(/\A[1-9]\d*\z/)
+
+  normalized = []
+  total_seconds = 0
+  remaining = value.downcase
+
+  until remaining.empty?
+    match = remaining.match(/\A(\d+)([dhms])(.*)\z/)
+    abort_with("Invalid delay: #{input}") unless match
+
+    amount = match[1].to_i
+    unit = match[2]
+    remaining = match[3]
+
+    total_seconds += amount * { 'd' => 86_400, 'h' => 3600, 'm' => 60, 's' => 1 }.fetch(unit)
+    normalized << "#{amount}#{unit}"
+  end
+
+  abort_with("Delay must be greater than zero: #{input}") if total_seconds <= 0
+  [normalized.join(' '), total_seconds]
+end
+
+def requested_delay
+  return parse_duration(ARGV.first) if ARGV.first
+
+  print 'Hibernate after suspend delay? [2h]: '
+  parse_duration(STDIN.gets.to_s)
+end
+
+def active_swaps
+  run!('swapon', '--show=NAME,SIZE,TYPE', '--noheadings', '--raw')
+    .lines
+    .map(&:strip)
+    .reject(&:empty?)
+end
+
+def runtime_resume_enabled?
+  File.read('/proc/cmdline').split.any? { |token| token.start_with?('resume=') }
+end
+
+def persisted_resume_enabled?(distro)
+  grub_resume = File.exist?(GRUB_PATH) && File.read(GRUB_PATH).include?('resume=')
+
+  initramfs_resume =
+    case distro
+    when :ubuntu
+      File.exist?(UBUNTU_RESUME_PATH) && File.read(UBUNTU_RESUME_PATH).match?(/^RESUME=/)
+    when :arch
+      File.exist?(ARCH_MKINITCPIO_PATH) && File.read(ARCH_MKINITCPIO_PATH).lines.any? do |line|
+        !line.lstrip.start_with?('#') && line.match?(/^\s*HOOKS\s*=.*\bresume\b/)
+      end
+    else
+      false
+    end
+
+  grub_resume && initramfs_resume
+end
+
+def ensure_hibernate_prerequisites!(distro)
+  abort_with('No active swap found. Enable hibernate first.') if active_swaps.empty?
+
+  state = File.read('/sys/power/state')
+  abort_with('Kernel hibernate support is missing (/sys/power/state has no disk).') unless state.split.include?('disk')
+  abort_with('Kernel hibernate mode file is missing: /sys/power/disk') unless File.exist?('/sys/power/disk')
+
+  unless runtime_resume_enabled?
+    abort_with('resume= is not active in /proc/cmdline. Reboot after enable_hibernate first.')
+  end
+
+  unless persisted_resume_enabled?(distro)
+    abort_with('Hibernate/resume config is incomplete. Run enable_hibernate first.')
+  end
+
+  abort_with('systemd suspend-then-hibernate unit is unavailable.') unless command_exists?('systemctl')
+  run!('systemctl', 'cat', 'systemd-suspend.service')
+  run!('systemctl', 'cat', 'systemd-suspend-then-hibernate.service')
+end
+
+def render_sleep_content(delay)
+  <<~EOF
+    # Generated by scripts/enable_hibernate_after_suspend
+    [Sleep]
+    AllowSuspendThenHibernate=yes
+    HibernateDelaySec=#{delay}
+  EOF
+end
+
+def render_suspend_override_content
+  <<~EOF
+    # Generated by scripts/enable_hibernate_after_suspend
+    [Service]
+    ExecStart=
+    ExecStart=/usr/lib/systemd/systemd-sleep suspend-then-hibernate
+  EOF
+end
+
+def temp_path_for(path)
+  "/tmp/#{File.basename(path)}.#{Process.pid}.tmp"
+end
+
+def write_temp_copy(target_path, content)
+  tmp_path = temp_path_for(target_path)
+  File.write(tmp_path, content)
+  tmp_path
+end
+
+def diff_text(original_path, tmp_path)
+  if File.exist?(original_path)
+    run!(
+      'diff', '-u',
+      '--label', "#{original_path} (current)",
+      '--label', "#{original_path} (proposed)",
+      original_path,
+      tmp_path,
+      allowed_exit_codes: [0, 1]
+    )
+  else
+    <<~EOF
+      --- #{original_path} (current)
+      +++ #{original_path} (proposed)
+      #{File.read(tmp_path)}
+    EOF
+  end
+end
+
+def backup_file!(path)
+  return unless File.exist?(path)
+
+  backup_path = "#{path}.bak.#{Time.now.strftime('%Y%m%d%H%M%S')}"
+  run!('sudo', 'cp', '-a', path, backup_path)
+  backup_path
+end
+
+def install_file!(tmp_path, target_path)
+  run!('sudo', 'install', '-Dm644', tmp_path, target_path)
+end
+
+def cleanup(paths)
+  paths.each do |path|
+    File.delete(path) if path && File.exist?(path)
+  end
+end
+
+if ARGV.include?('-h') || ARGV.include?('--help')
+  puts usage
+  exit 0
+end
+
+abort_with(usage) if ARGV.size > 1
+
+distro = detect_distro
+ensure_commands!
+ensure_hibernate_prerequisites!(distro)
+
+delay, total_seconds = requested_delay
+sleep_content = render_sleep_content(delay)
+sleep_changed = !File.exist?(SLEEP_DROPIN_PATH) || File.read(SLEEP_DROPIN_PATH) != sleep_content
+sleep_tmp_path = write_temp_copy(SLEEP_DROPIN_PATH, sleep_content)
+
+suspend_content = render_suspend_override_content
+suspend_changed = !File.exist?(SUSPEND_OVERRIDE_PATH) || File.read(SUSPEND_OVERRIDE_PATH) != suspend_content
+suspend_tmp_path = write_temp_copy(SUSPEND_OVERRIDE_PATH, suspend_content)
+
+puts "Distribution : #{distro}"
+puts "Delay        : #{delay}"
+puts "Delay sec    : #{total_seconds}"
+puts "Runtime      : resume= present in /proc/cmdline"
+puts "Sleep drop-in: #{SLEEP_DROPIN_PATH}"
+puts "Sleep temp   : #{sleep_tmp_path}"
+puts "Suspend ovrd : #{SUSPEND_OVERRIDE_PATH}"
+puts "Override tmp : #{suspend_tmp_path}"
+puts
+
+if sleep_changed
+  puts '--- sleep.conf drop-in diff ---'
+  puts diff_text(SLEEP_DROPIN_PATH, sleep_tmp_path)
+else
+  puts "Sleep config already configured: #{SLEEP_DROPIN_PATH}"
+end
+
+puts
+
+if suspend_changed
+  puts '--- systemd-suspend override diff ---'
+  puts diff_text(SUSPEND_OVERRIDE_PATH, suspend_tmp_path)
+else
+  puts "Suspend override already configured: #{SUSPEND_OVERRIDE_PATH}"
+end
+
+unless sleep_changed || suspend_changed
+  puts
+  puts 'Suspend-then-hibernate is already configured.'
+  cleanup([sleep_tmp_path, suspend_tmp_path])
+  exit 0
+end
+
+puts
+print 'Apply this change? [y/N]: '
+answer = STDIN.gets.to_s.strip.downcase
+
+unless %w[y yes].include?(answer)
+  puts "Skipped. Temp files remain at #{sleep_tmp_path} and #{suspend_tmp_path}"
+  exit 0
+end
+
+sleep_backup = backup_file!(SLEEP_DROPIN_PATH) if sleep_changed
+suspend_backup = backup_file!(SUSPEND_OVERRIDE_PATH) if suspend_changed
+
+install_file!(sleep_tmp_path, SLEEP_DROPIN_PATH) if sleep_changed
+install_file!(suspend_tmp_path, SUSPEND_OVERRIDE_PATH) if suspend_changed
+run!('sudo', 'systemctl', 'daemon-reload') if suspend_changed
+cleanup([sleep_tmp_path, suspend_tmp_path])
+
+puts 'Suspend-then-hibernate has been configured.'
+puts "Sleep backup : #{sleep_backup}" if sleep_backup
+puts "Susp backup  : #{suspend_backup}" if suspend_backup
+puts 'Use systemctl suspend or systemctl suspend-then-hibernate to test it.'
