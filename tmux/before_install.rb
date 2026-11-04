@@ -22,6 +22,13 @@ shell = if (s = gets.chomp).empty? then
 
 puts "tmux version #{tmux_version}"
 
+# plugins: tmux-resurrect + tmux-continuum (session save/restore)
+tmux_dir = File.expand_path(__dir__)
+%w[tmux-resurrect tmux-continuum].each{|name|
+  dst = "#{tmux_dir}/plugins/#{name}"
+  system("git", "clone", "https://github.com/tmux-plugins/#{name}", dst) unless File.exist?(dst)
+}
+
 d = if tmux_version >= COND and tmux_version >= 2.0 then
       YAML.load_file("after2.4.yaml")
     elsif tmux_version < COND and tmux_version >= 2.0 then
