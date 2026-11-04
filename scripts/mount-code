@@ -56,6 +56,16 @@ usage: ${0##*/} <command> [args]
 PATH may be given under $TRG, $SRC or $CACHE.
 NAME may also be a DEST from "## Custom Mounts" (mount, umount only).
 mount and umount also handle the listed mounts under NAME.
+
+\$LIST format:
+  ## Mounts
+  - NAME                  \$SRC/NAME + \$CACHE/NAME -> \$TRG/NAME
+  ## Custom Mounts
+  - DEST <- SRC           single branch
+  - DEST                  multiple branches, highest priority first
+    - SRC
+  DEST, SRC: /... is absolute, anything else is relative to \$HOME.
+  A DEST under another mount point is its child (mounted after, unmounted before it).
 EOF
 }
 
