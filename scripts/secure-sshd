@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+# 接続ごとに隔離されたサンドボックスへ入る、エージェント用の一時 SSH サーバーを起動する
+#
+# sshd 本体はサンドボックスの外で動き (ホスト鍵や設定をエージェントから隠すため)、
+# ForceCommand で接続ごとに ro-env --isolate の中へ入れる。root 不要、Ctrl-C か期限切れで全接続ごと終了する。
+
+usage() {
+  cat >&2 <<'EOF'
+Usage: secure-sshd --allow-ip IP[,IP...] [オプション] PATH...
+
+必須:
+  --allow-ip IP[,IP...]  接続を許可する IP または CIDR
+  PATH...                書込みを許可するパス。ログイン時は最初のパスに移動する
+
+任意:
+  --ro PATH      読み取り専用で見せるパス (複数指定可)
+  --net          サンドボックスからのネットワーク接続を許可 (既定: 遮断)
+  --expire TIME  有効期限。30m, 8h のように指定 (既定: 8h)
+  --listen ADDR  待ち受けアドレス (既定: 許可 IP へ向かう経路の送信元アドレス)
+  --port N       待ち受けポート (既定: 空きポートをランダムに選ぶ)
+  --name NAME    クライアント側の保存先 /tmp/agent-ssh-NAME-* の名前 (既定: 最初の PATH のディレクトリ名)
+
+サンドボックス内:
+  /home /run /mnt /media は隠す。/tmp /var/tmp $HOME は接続ごとの空の tmpfs (切断で消える)。
+  ~/bin や mise など $HOME 配下のツールは --ro で指定しないと使えない。
+EOF
+  exit 2
+}
+
+die() {
+  echo "secure-sshd: $1" >&2
+  exit 1
+}
+
+allow_ip=
+rw=()
+ro=()
+net=
+expire=8h
+listen=
+port=
+name=
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --allow-ip) allow_ip=$2; shift 2 ;;
+    --ro) ro+=("$2"); shift 2 ;;
+    --net) net=1; shift ;;
+    --expire) expire=$2; shift 2 ;;
+    --listen) listen=$2; shift 2 ;;
+    --port) port=$2; shift 2 ;;
+    --name) name=$2; shift 2 ;;
+    --) shift; rw+=("$@"); break ;;
+    -*) usage ;;
+    *) rw+=("$1"); shift ;;
+  esac
+done
+[[ -n $allow_ip && ${#rw[@]} -gt 0 ]] || usage
+
+IFS=, read -ra ips <<< "$allow_ip"
+for ip in "${ips[@]}"; do
+  [[ $ip =~ ^[0-9a-fA-F:.]+(/[0-9]+)?$ ]] || die "不正な IP: $ip"
+  [[ $ip =~ /0+$ || ${ip%%/*} == 0.0.0.0 || ${ip%%/*} == :: ]] && die "全アドレスの許可はできません: $ip"
+done
+
+# $HOME やその親を指定すると隠した意味がなくなるので拒否
+check_path() {
+  local p
+  p=$(realpath -e -- "$1") || die "パスが存在しません: $1"
+  [[ $p == *,* ]] && die "カンマを含むパスは指定できません: $p"
+  [[ "$HOME/" == "${p%/}/"* ]] && die "\$HOME またはその親は指定できません: $p"
+  echo "$p"
+}
+for i in "${!rw[@]}"; do rw[i]=$(check_path "${rw[i]}") || exit 1; done
+for i in "${!ro[@]}"; do ro[i]=$(check_path "${ro[i]}") || exit 1; done
+
+[[ $expire =~ ^([0-9]+)([smhd])$ ]] || die "不正な期限: $expire (例: 30m, 8h)"
+case ${BASH_REMATCH[2]} in
+  s) expire_sec=${BASH_REMATCH[1]} ;;
+  m) expire_sec=$((BASH_REMATCH[1] * 60)) ;;
+  h) expire_sec=$((BASH_REMATCH[1] * 3600)) ;;
+  d) expire_sec=$((BASH_REMATCH[1] * 86400)) ;;
+esac
+expire_at=$(date -d "+$expire_sec seconds" +%Y%m%d%H%M%S)
+
+if [[ -z $listen ]]; then
+  listen=$(ip -o route get "${ips[0]%%/*}" | grep -oP 'src \K\S+')
+  [[ -n $listen ]] || die "待ち受けアドレスを決定できません (--listen で指定してください)"
+fi
+if [[ -z $port ]]; then
+  for _ in {1..20}; do
+    port=$(shuf -i 20000-60000 -n 1)
+    [[ -z $(ss -Hltn "sport = :$port") ]] && break
+  done
+fi
+[[ -n $name ]] || name=$(basename "${rw[0]}")
+name=${name//[^a-zA-Z0-9._-]/_}
+
+self_dir=$(dirname "$(readlink -f "$0")")
+sshd_bin=$(command -v sshd) || die "sshd が見つかりません"
+
+umask 077
+# /run と /home はサンドボックスから隠れるので、この中身はエージェントから読めない
+dir=$(mktemp -d -p "${XDG_RUNTIME_DIR:-$HOME/.cache}" secure-sshd.XXXXXX) || exit 1
+
+descendants() {
+  local c
+  for c in $(pgrep -P "$1"); do
+    descendants "$c"
+    echo "$c"
+  done
+}
+cleanup() {
+  trap - EXIT INT TERM
+  [[ -n ${timer_pid:-} ]] && kill "$timer_pid" 2>/dev/null
+  if [[ -n ${sshd_pid:-} ]]; then
+    # sshd の接続プロセスは別セッションになるので、親を止める前に子孫を列挙する
+    procs=$(descendants "$sshd_pid")
+    kill "$sshd_pid" $procs 2>/dev/null
+  fi
+  rm -rf "$dir"
+}
+trap cleanup EXIT
+
+# /tmp は他ユーザーからも見えるので、推測できない名前にして既存のディレクトリは使わない
+client_dir=/tmp/agent-ssh-$name-${dir##*.}
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+ssh-keygen -q -t ed25519 -N '' -C "secure-sshd-host" -f "$dir/host_key" || exit 1
+ssh-keygen -q -t ed25519 -N '' -C "secure-sshd-$name" -f "$dir/client_key" || exit 1
+
+echo "from=\"$allow_ip\",expiry-time=\"$expire_at\",restrict,pty $(cat "$dir/client_key.pub")" > "$dir/authorized_keys"
+
+ro_env_args=(
+  --bwrap --keep-env --isolate
+  --noaccess /home,/run,/mnt,/media
+  --tmpfs "/tmp,/var/tmp,$HOME"
+)
+[[ -n $net ]] && ro_env_args+=(--net --ro /run/systemd/resolve)
+for p in "${ro[@]}"; do
+  ro_env_args+=(--ro "$p")
+done
+ro_env_args+=("${rw[@]}")
+
+{
+  echo '#!/usr/bin/env bash'
+  printf 'export PATH=%q SHELL=/usr/bin/bash\n' "$PATH"
+  printf 'cd %q || exit 1\n' "${rw[0]}"
+  printf 'cmd=(%q' "$self_dir/ro-env"
+  printf ' %q' "${ro_env_args[@]}"
+  echo ')'
+  cat <<'EOF'
+if [[ -n ${SSH_ORIGINAL_COMMAND:-} ]]; then
+  exec "${cmd[@]}" -- /usr/bin/bash -c "$SSH_ORIGINAL_COMMAND"
+fi
+exec "${cmd[@]}" -- /usr/bin/bash -l
+EOF
+} > "$dir/session"
+chmod 700 "$dir/session"
+
+allow_users=()
+for ip in "${ips[@]}"; do
+  allow_users+=("$USER@$ip")
+done
+
+cat > "$dir/sshd_config" <<EOF
+ListenAddress $listen
+Port $port
+HostKey $dir/host_key
+AuthorizedKeysFile $dir/authorized_keys
+PidFile none
+AllowUsers ${allow_users[*]}
+AuthenticationMethods publickey
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+UsePAM no
+PermitRootLogin no
+DisableForwarding yes
+PermitTunnel no
+PermitUserRC no
+PermitUserEnvironment no
+ForceCommand $dir/session
+MaxAuthTries 2
+LoginGraceTime 20
+MaxStartups 3:50:10
+ClientAliveInterval 30
+PrintMotd no
+LogLevel VERBOSE
+EOF
+"$sshd_bin" -t -f "$dir/sshd_config" || die "sshd の設定エラー"
+
+# クライアント用の鍵はバンドルに入れたらサーバー側から消す
+client=$dir/client
+mkdir "$client"
+mv "$dir/client_key" "$client/key"
+rm -f "$dir/client_key.pub"
+echo "[$listen]:$port $(cut -d' ' -f1,2 "$dir/host_key.pub")" > "$client/known_hosts"
+cat > "$client/config" <<EOF
+Host agent
+  HostName $listen
+  Port $port
+  User $USER
+  IdentityFile $client_dir/key
+  IdentitiesOnly yes
+  UserKnownHostsFile $client_dir/known_hosts
+  StrictHostKeyChecking yes
+  PasswordAuthentication no
+  KbdInteractiveAuthentication no
+  ForwardAgent no
+  ForwardX11 no
+  ClearAllForwardings yes
+EOF
+bundle=$(tar czf - -C "$client" . | base64 -w0)
+rm -rf "$client"
+
+"$sshd_bin" -D -e -f "$dir/sshd_config" &
+sshd_pid=$!
+sleep 0.3
+kill -0 "$sshd_pid" 2>/dev/null || die "sshd の起動に失敗しました"
+
+cat <<EOF
+待ち受け: $listen:$port  許可: $allow_ip  期限: $(date -d "+$expire_sec seconds" '+%F %T')  ネットワーク: $([[ -n $net ]] && echo 許可 || echo 遮断)
+書込み可: ${rw[*]}
+読取専用: ${ro[*]:--}
+
+クライアントで実行 (秘密鍵を含みます。使い捨てで、許可 IP と期限で制限されています):
+
+mkdir -m 700 $client_dir && echo $bundle | base64 -d | tar xzf - -C $client_dir
+
+接続:
+
+ssh -F $client_dir/config agent
+
+Ctrl-C で全接続ごと終了します。
+EOF
+
+sleep "$expire_sec" &
+timer_pid=$!
+wait -n "$sshd_pid" "$timer_pid"
+echo "secure-sshd: 終了します" >&2

@@ -9,6 +9,7 @@
     :ro-env:          :"bin/ro-env"
     :ro-ctl:          :"bin/ro-ctl"
     :secure-env:      :"bin/secure-env"
+    :secure-sshd:     :"bin/secure-sshd"
     :claude-secure:   :"bin/claude-secure"
     :mount-code:      :"bin/mount-code"
     :reset_screen:    :"bin/reset_screen"

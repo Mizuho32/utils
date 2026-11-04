@@ -3,9 +3,12 @@
 rw=()
 ro=()
 noaccess=()
+tmpfs=()
 cmd=()
 bwrap=
 keep_env=
+isolate=
+net=
 
 # "--" までをReadWritePaths、それ以降をコマンド
 # --bwrap: systemd-run の代わりに bwrap で実行 (呼び出し元の子プロセスのまま動く)
@@ -14,6 +17,9 @@ keep_env=
 #   同じパスを ReadWritePaths にも指定した場合は隠す方が優先
 #   --bwrap 時は配下の ReadWritePaths / --ro は見える。systemd-run 時は配下も含めて不可
 # --ro a,b: (--bwrap 時のみ) --noaccess で隠した配下を読み取り専用で見せる
+# --tmpfs a,b: (--bwrap 時のみ) 指定パスを書込み可能な空の tmpfs にする (終了で消える)
+# --isolate: (--bwrap 時のみ) PID/IPC/UTS/cgroup/ネットワークを分離し、/dev を専用のものにする
+# --net: (--isolate 時のみ) ネットワークの分離だけ解除する
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --)
@@ -39,6 +45,19 @@ while [[ $# -gt 0 ]]; do
       ro+=("${paths[@]}")
       shift 2
       ;;
+    --tmpfs)
+      IFS=, read -ra paths <<< "$2"
+      tmpfs+=("${paths[@]}")
+      shift 2
+      ;;
+    --isolate)
+      isolate=1
+      shift
+      ;;
+    --net)
+      net=1
+      shift
+      ;;
     *)
       rw+=("$1")
       shift
@@ -51,8 +70,13 @@ if [[ -n $keep_env && -z $bwrap ]]; then
   exit 2
 fi
 
-if [[ ${#ro[@]} -gt 0 && -z $bwrap ]]; then
-  echo "ro-env: --ro requires --bwrap" >&2
+if [[ ( ${#ro[@]} -gt 0 || ${#tmpfs[@]} -gt 0 || -n $isolate ) && -z $bwrap ]]; then
+  echo "ro-env: --ro, --tmpfs and --isolate require --bwrap" >&2
+  exit 2
+fi
+
+if [[ -n $net && -z $isolate ]]; then
+  echo "ro-env: --net requires --isolate" >&2
   exit 2
 fi
 
@@ -62,6 +86,11 @@ for p in "${noaccess[@]}"; do
   p=$(realpath -e -- "$p" 2>/dev/null) && resolved+=("$p")
 done
 noaccess=("${resolved[@]}")
+resolved=()
+for p in "${tmpfs[@]}"; do
+  p=$(realpath -e -- "$p" 2>/dev/null) && resolved+=("$p")
+done
+tmpfs=("${resolved[@]}")
 
 if [[ -n $bwrap ]]; then
   # systemd-run に合わせて環境変数は user manager のもの + TERM/COLORTERM のみ
@@ -81,13 +110,14 @@ if [[ -n $bwrap ]]; then
     done
   fi
 
-  # 親から順にマウントする (浅いパスが先、同じパスなら rw < ro < noaccess の順で後のものが上に載る)
+  # 親から順にマウントする (浅いパスが先、同じパスなら rw < ro < tmpfs < noaccess の順で後のものが上に載る)
   args=()
   remount=()
   while IFS=$'\t' read -r _ _ kind p; do
     case $kind in
       rw) args+=("--bind-try" "$p" "$p") ;;
       ro) args+=("--ro-bind-try" "$p" "$p") ;;
+      tmpfs) args+=("--tmpfs" "$p") ;;
       noaccess)
         if [[ -d $p ]]; then
           args+=("--tmpfs" "$p")
@@ -101,14 +131,24 @@ if [[ -n $bwrap ]]; then
   done < <({
     for p in "${rw[@]}"; do p=${p%/}; printf '%s\t0\trw\t%s\n' "${#p}" "${p:-/}"; done
     for p in "${ro[@]}"; do p=${p%/}; printf '%s\t1\tro\t%s\n' "${#p}" "${p:-/}"; done
-    for p in "${noaccess[@]}"; do printf '%s\t2\tnoaccess\t%s\n' "${#p}" "$p"; done
+    for p in "${tmpfs[@]}"; do printf '%s\t2\ttmpfs\t%s\n' "${#p}" "$p"; done
+    for p in "${noaccess[@]}"; do printf '%s\t3\tnoaccess\t%s\n' "${#p}" "$p"; done
   } | sort -t $'\t' -s -k1,1n -k2,2n)
+  dev=("--dev-bind" "/dev" "/dev")
+  unshare=()
+  if [[ -n $isolate ]]; then
+    dev=("--dev" "/dev")
+    unshare=("--unshare-all")
+    [[ -n $net ]] && unshare+=("--share-net")
+  fi
+
   # ProtectSystem=strict + BindReadOnlyPaths=$HOME 相当: / 全体を ro、/dev /proc は使えるように
   exec bwrap \
     --ro-bind / / \
-    --dev-bind /dev /dev \
+    "${dev[@]}" \
     --proc /proc \
     --unshare-user --disable-userns \
+    "${unshare[@]}" \
     "${args[@]}" \
     "${remount[@]}" \
     "${envs[@]}" \
