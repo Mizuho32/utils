@@ -60,18 +60,15 @@ loc.map{|src, trg|
 end
 
 def exclude_files(type_files)
-  ex = {}
-  type_files = type_files.map {|type, files|
+  type_files.map {|type, files|
     files = loc_dearray(files)
     puts "select files to NOT INSTALL for #{type}:"
     puts files.each_with_index.map {|(src, trg), i|
       "  #{i}: #{src} -> #{trg}"
     }.join("\n")
-    ex[type] = exclude_nums().map{|i| files.keys[i]}
-    [type, files]
+    nums = exclude_nums()
+    [type, files.reject.with_index{|_, i| nums.include?(i)}]
   }.to_h
-  ex.each {|type, exc| exc.each{|ex| type_files[type].delete ex}}
-  type_files
 end
 
 $rand_chars = [*?0..?9, *?a..?z, *?A..?Z]
