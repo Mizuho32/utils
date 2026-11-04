@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 rw=()
+ro=()
+noaccess=()
 cmd=()
 bwrap=
 keep_env=
@@ -8,6 +10,10 @@ keep_env=
 # "--" までをReadWritePaths、それ以降をコマンド
 # --bwrap: systemd-run の代わりに bwrap で実行 (呼び出し元の子プロセスのまま動く)
 # --keep-env: (--bwrap 時のみ) 呼び出し元の環境変数をそのまま引き継ぐ
+# --noaccess a,b: 指定パスを隠す (ディレクトリは空に、ファイルは /dev/null に見える)
+#   同じパスを ReadWritePaths にも指定した場合は隠す方が優先
+#   --bwrap 時は配下の ReadWritePaths / --ro は見える。systemd-run 時は配下も含めて不可
+# --ro a,b: (--bwrap 時のみ) --noaccess で隠した配下を読み取り専用で見せる
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --)
@@ -23,6 +29,16 @@ while [[ $# -gt 0 ]]; do
       keep_env=1
       shift
       ;;
+    --noaccess)
+      IFS=, read -ra paths <<< "$2"
+      noaccess+=("${paths[@]}")
+      shift 2
+      ;;
+    --ro)
+      IFS=, read -ra paths <<< "$2"
+      ro+=("${paths[@]}")
+      shift 2
+      ;;
     *)
       rw+=("$1")
       shift
@@ -34,6 +50,18 @@ if [[ -n $keep_env && -z $bwrap ]]; then
   echo "ro-env: --keep-env requires --bwrap" >&2
   exit 2
 fi
+
+if [[ ${#ro[@]} -gt 0 && -z $bwrap ]]; then
+  echo "ro-env: --ro requires --bwrap" >&2
+  exit 2
+fi
+
+# 実体を隠すためシンボリックリンクは解決する。存在しないパスは無視
+resolved=()
+for p in "${noaccess[@]}"; do
+  p=$(realpath -e -- "$p" 2>/dev/null) && resolved+=("$p")
+done
+noaccess=("${resolved[@]}")
 
 if [[ -n $bwrap ]]; then
   # systemd-run に合わせて環境変数は user manager のもの + TERM/COLORTERM のみ
@@ -53,11 +81,28 @@ if [[ -n $bwrap ]]; then
     done
   fi
 
+  # 親から順にマウントする (浅いパスが先、同じパスなら rw < ro < noaccess の順で後のものが上に載る)
   args=()
-  for p in "${rw[@]}"; do
-    args+=("--bind-try" "$p" "$p")
-  done
-
+  remount=()
+  while IFS=$'\t' read -r _ _ kind p; do
+    case $kind in
+      rw) args+=("--bind-try" "$p" "$p") ;;
+      ro) args+=("--ro-bind-try" "$p" "$p") ;;
+      noaccess)
+        if [[ -d $p ]]; then
+          args+=("--tmpfs" "$p")
+          # 配下のマウントポイント作成後に読み取り専用にする
+          remount+=("--remount-ro" "$p")
+        else
+          args+=("--ro-bind" "/dev/null" "$p")
+        fi
+        ;;
+    esac
+  done < <({
+    for p in "${rw[@]}"; do p=${p%/}; printf '%s\t0\trw\t%s\n' "${#p}" "${p:-/}"; done
+    for p in "${ro[@]}"; do p=${p%/}; printf '%s\t1\tro\t%s\n' "${#p}" "${p:-/}"; done
+    for p in "${noaccess[@]}"; do printf '%s\t2\tnoaccess\t%s\n' "${#p}" "$p"; done
+  } | sort -t $'\t' -s -k1,1n -k2,2n)
   # ProtectSystem=strict + BindReadOnlyPaths=$HOME 相当: / 全体を ro、/dev /proc は使えるように
   exec bwrap \
     --ro-bind / / \
@@ -65,6 +110,7 @@ if [[ -n $bwrap ]]; then
     --proc /proc \
     --unshare-user --disable-userns \
     "${args[@]}" \
+    "${remount[@]}" \
     "${envs[@]}" \
     --chdir "$PWD" \
     --die-with-parent \
@@ -75,6 +121,9 @@ fi
 args=()
 for p in "${rw[@]}"; do
   args+=("-p" "ReadWritePaths=-$p")
+done
+for p in "${noaccess[@]}"; do
+  args+=("-p" "InaccessiblePaths=-$p")
 done
 
 systemd-run -P --user --pty --working-directory=$PWD \

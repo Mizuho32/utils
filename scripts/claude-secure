@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# secure-env の中で claude を起動する
+# Usage: claude-secure [--rw PATH]... [--ro PATH]... [--noaccess PATH]... [claude の引数...]
+
+config=${CLAUDE_CONFIG_DIR:-$HOME/.config/claude}
+
+env_args=("--rw" "$config" "--rw" "$MISE_DATA_DIR/installs/node")
+command=claude
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --rw|--ro|--noaccess)
+      env_args+=("$1" "$2")
+      shift 2
+      ;;
+    *)
+      command+=" $(printf %q "$1")"
+      shift
+      ;;
+  esac
+done
+
+exec secure-env "${env_args[@]}" -- /usr/bin/env CLAUDE_CONFIG_DIR="$config" /usr/bin/bash -lic "$command"
