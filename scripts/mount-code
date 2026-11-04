@@ -7,6 +7,22 @@
 # category.create=epff: new files go to the first branch where the parent dir exists,
 # so a path that exists only in the cache branch keeps everything under it local.
 # Mount targets are listed in the "## Mounts" section of $LIST (one "- NAME" per line).
+#
+# Arbitrary directories are listed in the "## Custom Mounts" section of $LIST:
+# "- DEST" with its branches as nested "  - SRC" items, highest priority first,
+# or "- DEST <- SRC" for a single branch.
+# A path starting with / is absolute, anything else is relative to $HOME.
+# DEST as written is the NAME for mount/umount.
+#
+#   ## Custom Mounts
+#   - `docs`
+#     - `media/nas/docs`
+#     - `media/cache/unionfs/docs`
+#   - `music` <- `media/nas/music`
+#
+# A listed mount whose mount point is under another one's is its child, whichever
+# section it is in. mount/umount of a parent also handle its children, and a parent
+# gets allow_other because fusermount3 (root) can't reach the child's mount point otherwise.
 
 set -u
 
@@ -18,6 +34,10 @@ LIST=${MOUNT_CODE_LIST:-$TRG/README.md}
 
 DRY=
 ERR=0
+CUSTOM_NAMES=()
+declare -A CUSTOM_SRCS
+LISTED_NAMES=()
+LISTED_TARGETS=()
 
 usage() {
   cat <<EOF
@@ -34,6 +54,8 @@ usage: ${0##*/} <command> [args]
   cache-path [PATH...]        print the cache side of PATH (default: current dir)
 
 PATH may be given under $TRG, $SRC or $CACHE.
+NAME may also be a DEST from "## Custom Mounts" (mount, umount only).
+mount and umount also handle the listed mounts under NAME.
 EOF
 }
 
@@ -53,6 +75,81 @@ run() {
 list_names() {
   [ -f "$LIST" ] || { echo "error: $LIST not found" >&2; exit 1; }
   awk '/^## /{f=($0=="## Mounts")} f && /^- /{gsub(/`/,""); print $2}' "$LIST"
+  [ "${#CUSTOM_NAMES[@]}" -eq 0 ] || printf '%s\n' "${CUSTOM_NAMES[@]}"
+}
+
+# read the "## Custom Mounts" section
+# sets globals CUSTOM_NAMES (in list order) and CUSTOM_SRCS[DEST] (tab separated)
+load_custom() {
+  local line
+  [ -f "$LIST" ] || return
+  while IFS= read -r line; do
+    if [ -z "${line%%$'\t'*}" ]; then
+      err "$LIST: \"${line#*$'\t'}\" has no DEST in \"## Custom Mounts\""
+      continue
+    fi
+    CUSTOM_NAMES+=("${line%%$'\t'*}")
+    CUSTOM_SRCS[${line%%$'\t'*}]=${line#*$'\t'}
+  done < <(awk '
+    function flush() { if (d != "" || s != "") print d "\t" s; d = s = "" }
+    /^## /{flush(); f=($0=="## Custom Mounts"); next}
+    !f{next}
+    {gsub(/`/,""); sub(/[ \t]+$/,"")}
+    # complete by itself, so the indent does not matter
+    /^[ \t]*- .* +<- +/{flush(); sub(/^[ \t]*- /,""); match($0,/ +<- +/); print substr($0,1,RSTART-1) "\t" substr($0,RSTART+RLENGTH); next}
+    /^- /{flush(); d=substr($0,3); next}
+    /^[ \t]+- /{sub(/^[ \t]+- /,""); s=s (s==""?"":"\t") $0; if (d=="") flush()}
+    END{flush()}
+  ' "$LIST")
+}
+
+is_custom() {
+  [ -n "${CUSTOM_SRCS[$1]+x}" ]
+}
+
+# /... is absolute, anything else is relative to $HOME
+custom_path() {
+  local p=${1#\~/}
+  case $p in
+    /*) ;;
+    *) p=$HOME/$p ;;
+  esac
+  realpath -ms -- "$p"
+}
+
+# mount point of NAME
+target_of() {
+  if is_custom "$1"; then
+    custom_path "$1"
+  else
+    realpath -ms -- "$TRG/$1"
+  fi
+}
+
+# LISTED_NAMES, LISTED_TARGETS: every listed mount and its mount point
+load_listed() {
+  local n
+  [ -f "$LIST" ] || return
+  mapfile -t LISTED_NAMES < <(list_names)
+  for n in "${LISTED_NAMES[@]}"; do
+    LISTED_TARGETS+=("$(target_of "$n")")
+  done
+}
+
+# add the listed mounts under NAMES to NAMES, and sort parents first
+expand_names() {
+  local n t i
+  mapfile -t NAMES < <(
+    for n in "${NAMES[@]}"; do
+      t=$(target_of "$n")
+      printf '%s\t%s\n' "$t" "$n"
+      for i in "${!LISTED_NAMES[@]}"; do
+        case ${LISTED_TARGETS[i]} in
+          "$t"/*) printf '%s\t%s\n' "${LISTED_TARGETS[i]}" "${LISTED_NAMES[i]}" ;;
+        esac
+      done
+    done | LC_ALL=C sort -u | cut -f2-
+  )
 }
 
 # expand "all" into listed names
@@ -72,30 +169,104 @@ fstype() {
 }
 
 do_mount() {
-  local name=$1
-  local src=$SRC/$name trg=$TRG/$name cache=$CACHE/$name
+  local name=$1 src srcs=()
+
+  if is_custom "$name"; then
+    IFS=$'\t' read -ra srcs <<< "${CUSTOM_SRCS[$name]}"
+    if [ "${#srcs[@]}" -eq 0 ]; then
+      err "$name: no SRC listed"
+      return
+    fi
+    for src in "${!srcs[@]}"; do
+      srcs[src]=$(custom_path "${srcs[src]}")
+    done
+    mount_branches "$name" "$(custom_path "$name")" "${srcs[@]}"
+  elif ! [ -d "$SRC/$name" ] && ! list_names | grep -qxF -- "$name"; then
+    # would be created under $SRC, $TRG and $CACHE as a new project
+    err "$name: not listed in $LIST and $SRC/$name does not exist"
+  else
+    mount_branches "$name" "$(target_of "$name")" "$SRC/$name" "$CACHE/$name"
+  fi
+}
+
+# mount branches SRC... (highest priority first) on TRG
+mount_branches() {
+  local name=$1 trg=$2 path nas branches listed
+  local opts="category.create=epff,fsname=mount-code:$name"
+  shift 2
 
   if mountpoint -q "$trg"; then
     echo "$name: already mounted ($(fstype "$trg"))"
     return
   fi
-  # don't mkdir on local disk while NFS is not up yet
-  if ! mountpoint -q "$NAS"; then
-    err "$name: $NAS is not mounted"
-    return
-  fi
+  for listed in "${LISTED_TARGETS[@]}"; do
+    case $trg in
+      "$listed"/*)
+        # otherwise the mount point would be made on the disk under the parent
+        if ! mountpoint -q "$listed"; then
+          err "$name: parent $listed is not mounted"
+          return
+        fi
+        case ",$(findmnt -no OPTIONS --mountpoint "$listed" 2>/dev/null | head -n1)," in
+          *,allow_other,*) ;;
+          *)
+            err "$name: parent $listed is mounted without allow_other, umount and mount it again"
+            return
+            ;;
+        esac
+        ;;
+      *)
+        case $listed in
+          "$trg"/*) [[ $opts == *,allow_other ]] || opts+=,allow_other ;;
+        esac
+        ;;
+    esac
+  done
+  nas=$(realpath -ms -- "$NAS")
+  for path in "$@"; do
+    # mergerfs option / branch syntax
+    case $path in
+      *[:,=]*)
+        err "$name: $path: ':', ',' and '=' are not supported"
+        return
+        ;;
+    esac
+    # a mount point inside its own branch makes mergerfs recurse into itself
+    case "$path/" in
+      "$trg/"*)
+        err "$name: $path overlaps with $trg"
+        return
+        ;;
+    esac
+    case "$trg/" in
+      "$path/"*)
+        err "$name: $trg overlaps with $path"
+        return
+        ;;
+    esac
+    # don't mkdir on local disk while NFS is not up yet
+    case "$path/" in
+      "$nas/"*)
+        if ! mountpoint -q "$NAS"; then
+          err "$name: $NAS is not mounted"
+          return
+        fi
+        ;;
+    esac
+  done
   if [ -d "$trg" ] && [ -n "$(ls -A "$trg")" ]; then
     err "$name: $trg is not empty"
     return
   fi
-  for path in "$src" "$trg" "$cache"; do
+  for path in "$@" "$trg"; do
     if ! [ -d "$path" ]; then
       echo "$name: $path does not exist. Make it."
       mkdir -p "$path" || { err "$name: mkdir $path failed"; return; }
     fi
   done
 
-  if mergerfs -o "category.create=epff,fsname=mount-code:$name" "$src:$cache" "$trg"; then
+  branches=$(IFS=:; echo "$*")
+  if mergerfs -o "$opts" "$branches" "$trg"; then
     echo "$name: mounted"
   else
     err "$name: mergerfs failed"
@@ -104,7 +275,8 @@ do_mount() {
 
 do_umount() {
   local name=$1
-  local trg=$TRG/$name
+  local trg
+  trg=$(target_of "$name")
 
   if ! mountpoint -q "$trg"; then
     echo "$name: not mounted"
@@ -120,7 +292,7 @@ do_umount() {
 do_status() {
   local name trg
   for name in "${NAMES[@]}"; do
-    trg=$TRG/$name
+    trg=$(target_of "$name")
     if mountpoint -q "$trg"; then
       printf '%-20s %s\n' "$name" "$(fstype "$trg")"
     else
@@ -263,6 +435,7 @@ walk_cached() {
 do_cached() {
   local name
   for name in "${NAMES[@]}"; do
+    is_custom "$name" && continue
     [ -d "$CACHE/$name" ] && walk_cached "$name" ""
   done
 }
@@ -330,14 +503,20 @@ load_names() {
   [ "${#NAMES[@]}" -gt 0 ] || exit 1
 }
 
+load_custom
+
 case $cmd in
   mount)
     load_names "$@"
+    load_listed
+    expand_names
     for n in "${NAMES[@]}"; do do_mount "$n"; done
     ;;
   umount|unmount)
     load_names "$@"
-    for n in "${NAMES[@]}"; do do_umount "$n"; done
+    load_listed
+    expand_names
+    for ((i = ${#NAMES[@]} - 1; i >= 0; i--)); do do_umount "${NAMES[i]}"; done
     ;;
   status)
     load_names all
