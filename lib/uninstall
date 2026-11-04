@@ -16,7 +16,7 @@ end
 
 Dir::chdir(dir)
 
-y = YAML.load_file("loc.yaml", aliases: true)
+y = Host.loc(Dir::pwd)
 i = y.delete :before_uninstall
 f = y.delete :after_uninstall
 

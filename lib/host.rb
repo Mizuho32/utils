@@ -23,4 +23,20 @@ module Host
     path = dir(component_dir) / "vars.yaml"
     YAML.load_file(path) if path.exist?
   end
+
+  # <component>/loc.yaml with hosts/<hostname>/<component>/loc.yaml merged over it
+  # nil in the latter removes the entry
+  def loc(component_dir)
+    common = YAML.load_file(Pathname(component_dir) / "loc.yaml", aliases: true)
+    path   = dir(component_dir) / "loc.yaml"
+    return common unless path.exist?
+
+    deep_merge(common, YAML.load_file(path, aliases: true))
+  end
+
+  private def deep_merge(base, over)
+    base.merge(over){|_, b, o|
+      b.is_a?(Hash) && o.is_a?(Hash) ? deep_merge(b, o) : o
+    }.compact
+  end
 end

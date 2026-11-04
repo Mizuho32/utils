@@ -1,0 +1,7 @@
+:type:
+  :sym:
+    :autostart.sh:    :"bin/autostart.sh"
+    :backuppers/backupper.service: :".config/systemd/user/backupper.service"
+    :backuppers/backupper.timer:   :".config/systemd/user/backupper.timer"
+    :"$HOME/prjs/RubyTools/WOL_UI/bin/wol_ui":                :"bin/wol_ui"
+    :"$HOME/prjs/RubyTools/WiFikeyboardUI/bin/wifikeyboard":  :"bin/wifikeyboard"

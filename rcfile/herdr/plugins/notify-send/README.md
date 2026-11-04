@@ -20,7 +20,7 @@ herdr server ── pane.agent_status_changed ──▶ notify.sh   (herdr-plugi
 ```
 
 外側の入れ子は `kitty (autostart) > タブ claudes > tmux session claudes > window herdr > herdr`。
-kitty / tmux の名前は `scripts/autostart.kitty-session` と tmuxinator の `claudes.yml` で固定している。
+kitty / tmux の名前は `hosts/u728s/scripts/autostart.kitty-session` と tmuxinator の `claudes.yml` で固定している。
 
 ## 通知する条件 (notify.sh)
 
@@ -41,7 +41,7 @@ herdr 自身のトースト (`[ui.toast] delivery = "herdr"`) とは別に出る
 
 ## 依存
 
-- kitty の遠隔操作: `scripts/autostart.sh` が kitty を
+- kitty の遠隔操作: `hosts/u728s/scripts/autostart.sh` が kitty を
   `-o allow_remote_control=socket-only --listen-on unix:$XDG_RUNTIME_DIR/kitty-autostart` で起動する。
   autostart 以外で起動した kitty ではタブ切替と kitty の状態判定が効かない(herdr 内の移動はする)。
 - KWin: Wayland ではアプリが自分のウィンドウを前に出せないので、

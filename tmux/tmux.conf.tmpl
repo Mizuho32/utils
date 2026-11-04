@@ -83,7 +83,7 @@ source-file -q <%= host_dir %>/local.conf
 <% if vars["resurrect"] %>
 ## Session save/restore (tmux-resurrect + tmux-continuum)
 # cwd/layout only, no programs; tmuxinator sessions are excluded by the hook
-# restore is run explicitly from scripts/autostart.kitty-session after tmuxinator
+# restore is run explicitly from hosts/<hostname>/scripts/autostart.kitty-session after tmuxinator
 set -g @resurrect-processes 'false'
 set -g @resurrect-hook-post-save-layout '<%= tmux_dir %>/resurrect-filter.sh'
 set -g @continuum-save-interval '5'
