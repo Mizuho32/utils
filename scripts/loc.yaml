@@ -7,5 +7,6 @@
     :endprefix:       :"bin/endprefix"
     :sys-env:         :"bin/sys-env"
     :ro-env:          :"bin/ro-env"
+    :ro-ctl:          :"bin/ro-ctl"
     :mount-code:      :"bin/mount-code"
     :reset_screen:    :"bin/reset_screen"
