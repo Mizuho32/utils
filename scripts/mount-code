@@ -66,6 +66,12 @@ mount and umount also handle the listed mounts under NAME.
     - SRC
   DEST, SRC: /... is absolute, anything else is relative to \$HOME.
   A DEST under another mount point is its child (mounted after, unmounted before it).
+
+Setup on Ubuntu/Debian (mergerfs fails with "Operation not permitted" without this):
+  # mergerfs-fusermount is not setuid; statoverride keeps it across package upgrades
+  sudo dpkg-statoverride --update --add root root 4755 /usr/bin/mergerfs-fusermount
+  # needed for parent mounts (allow_other)
+  sudo sed -i 's/^#user_allow_other/user_allow_other/' /etc/fuse.conf
 EOF
 }
 
