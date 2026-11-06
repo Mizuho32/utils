@@ -2,7 +2,8 @@
 # new_tab <title> pins the tab title (not overwritten by tmux etc.)
 
 new_tab tmux
-launch bash -c "$HOME/bin/startprefix -c 'for s in system apps remotes claudes; tmuxinator start $s --no-attach; end'; $HOME/bin/startprefix"
+# then restore manually created sessions (cwd/layout) saved by tmux-resurrect (see tmux/tmux.conf.tmpl)
+launch bash -c "$HOME/bin/startprefix -c 'for s in system apps remotes claudes; tmuxinator start $s --no-attach; end; tmux run-shell $HOME/utils/tmux/plugins/tmux-resurrect/scripts/restore.sh'; $HOME/bin/startprefix"
 focus
 
 # claudes session is created by tab 1 (tmuxinator); wait for it (max 30s) then attach

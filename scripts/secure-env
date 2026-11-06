@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# 機密パスを隠した ro-env の中でコマンドを実行する
+# Usage: secure-env [--rw PATH]... [--ro PATH]... [--noaccess PATH]... [--] COMMAND [ARGS...]
+#   --rw: 書込みを許可するパスを追加 (既定: $PWD /tmp ~/.cache)
+#   --ro: --noaccess で隠した配下を読み取り専用で見せるパスを追加
+#   --noaccess: 隠すパスを追加
+
+noaccess=(
+  "$HOME/.ssh" "$HOME/.gnupg" "$HOME/.pki" "$HOME/.aws" "$HOME/.azure" "$HOME/.kube" "$HOME/.docker"
+  "$HOME/.netrc" "$HOME/.npmrc" "$HOME/.pypirc" "$HOME/.git-credentials" "$HOME/.password-store"
+  "$HOME/.gem/credentials" "$HOME/.cargo/credentials.toml"
+  "$HOME/.mozilla" "$HOME/.floorp" "$HOME/.thunderbird" "$HOME/.var/app"
+  "$HOME/.local/share/keyrings" "$HOME/.local/share/kwalletd" "$HOME/.local/share/fish" "$HOME/.bash_history"
+  "$HOME/.config"
+)
+# ~/.config のうち開発ツールの起動に必要なもの
+ro=("$HOME/.config/mise" "$HOME/.config/git")
+rw=("$PWD" /tmp "$HOME/.cache")
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --rw)
+      rw+=("$2")
+      shift 2
+      ;;
+    --ro)
+      ro+=("$2")
+      shift 2
+      ;;
+    --noaccess)
+      noaccess+=("$2")
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [[ $# -eq 0 ]]; then
+  echo "Usage: secure-env [--rw PATH]... [--ro PATH]... [--noaccess PATH]... [--] COMMAND [ARGS...]" >&2
+  exit 2
+fi
+
+args=()
+for p in "${noaccess[@]}"; do
+  args+=("--noaccess" "$p")
+done
+for p in "${ro[@]}"; do
+  args+=("--ro" "$p")
+done
+
+exec ro-env --bwrap --keep-env "${args[@]}" "${rw[@]}" -- "$@"

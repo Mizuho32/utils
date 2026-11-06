@@ -6,10 +6,7 @@ bind-key C-<%= key %> send-prefix
 set -g mouse on
 
 ## shell
-# set-option -g default-shell <%= `which #{shell}`.strip %>
-
-## WOL UI
-bind-key W display-popup -E "wol_ui"
+<% if shell %>set-option -g default-shell <%= `which #{shell}`.strip %><% end %>
 
 ## General
 
@@ -80,3 +77,19 @@ set -g window-status-format "#[fg=colour000,bold] #I:#W"
 set -g window-status-current-format "#[bg=colour002,fg=colour015,bold] #I:#W*#[default]"
 
 set -g status-position bottom
+
+
+## Per-host overrides
+source-file -q <%= host_dir %>/local.conf
+
+<% if vars["resurrect"] %>
+## Session save/restore (tmux-resurrect + tmux-continuum)
+# cwd/layout only, no programs; tmuxinator sessions are excluded by the hook
+# restore is run explicitly from hosts/<hostname>/scripts/autostart.kitty-session after tmuxinator
+set -g @resurrect-processes 'false'
+set -g @resurrect-hook-post-save-layout '<%= tmux_dir %>/resurrect-filter.sh'
+set -g @continuum-save-interval '5'
+# must come after status-right (continuum hooks its autosave into it)
+run-shell <%= tmux_dir %>/plugins/tmux-resurrect/resurrect.tmux
+run-shell <%= tmux_dir %>/plugins/tmux-continuum/continuum.tmux
+<% end %>

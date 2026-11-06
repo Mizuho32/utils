@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+# bwrap サンドボックス (ro-env --bwrap 等) の書込み権限を起動後に確認・変更する
+
+import ctypes
+import fcntl
+import glob
+import json
+import os
+import sys
+
+USAGE = """\
+Usage:
+  ro-ctl list [-a]              サンドボックス一覧 (-a: flatpak 等も含める)
+  ro-ctl show TARGET [-a]       書込み可能なマウント一覧 (-a: 全マウント)
+  ro-ctl check TARGET PATH...   パスの状態と、そのマウントに書込み中の fd を表示
+  ro-ctl rw TARGET PATH...      書込みを許可
+  ro-ctl ro TARGET PATH... [-f] 書込みを禁止
+
+TARGET: サンドボックス内のプロセスか bwrap の PID、Claude のセッションID (前方一致)、セッション名
+PATH はサンドボックス内から見たパス。rw / ro はサンドボックスの外から実行すること。
+
+注意:
+- PATH が既存のマウントなら全プロセスに即反映する。
+- それ以外は PATH に bind mount を新設するので、既に PATH 内を cwd にしている
+  プロセスや開いたままのディレクトリ fd からの相対パスには効かない (cd し直しが必要)。
+- 書込み用 fd を開いたプロセスがいるマウントは ro にできない (EBUSY)。
+  -f は上に bind mount を重ねて新規 open だけ禁止する。開いている fd と、
+  PATH 内を cwd にしているプロセスからの相対パスでの書込みは止まらない。
+- 配下の別マウントの権限は変わらない。
+"""
+
+NS_GET_USERNS = 0xb701
+CLONE_NEWUSER, CLONE_NEWNS = 0x10000000, 0x00020000
+MS_RDONLY, MS_REMOUNT, MS_BIND, MS_REC = 1, 32, 4096, 16384
+# ST_* -> MS_* (ロックされたフラグを落とすと EPERM になるので remount 時に維持する)
+KEEP_FLAGS = {2: 2, 4: 4, 8: 8, 1024: 1024, 2048: 2048, 4096: 2097152, 65536: 256}
+PSEUDO = ("/dev", "/proc", "/sys")
+
+libc = ctypes.CDLL(None, use_errno=True)
+
+
+def fail(msg):
+    sys.exit(f"ro-ctl: {msg}")
+
+
+def syscall_check(rc, what):
+    if rc != 0:
+        e = ctypes.get_errno()
+        raise OSError(e, os.strerror(e), what)
+
+
+def mnt_ns(pid):
+    return os.readlink(f"/proc/{pid}/ns/mnt")
+
+
+def proc_stat(pid):
+    with open(f"/proc/{pid}/stat") as f:
+        return f.read().rsplit(")", 1)[1].split()
+
+
+def cmdline(pid):
+    with open(f"/proc/{pid}/cmdline", "rb") as f:
+        return [a.decode(errors="replace") for a in f.read().split(b"\0")[:-1]]
+
+
+def pids():
+    return sorted(int(d) for d in os.listdir("/proc") if d.isdigit())
+
+
+def sessions():
+    base = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
+    out = []
+    for path in glob.glob(f"{base}/sessions/*.json"):
+        try:
+            with open(path) as f:
+                s = json.load(f)
+            # PID 再利用された古いファイルを除外
+            if str(s.get("procStart", proc_stat(s["pid"])[19])) != proc_stat(s["pid"])[19]:
+                continue
+        except (OSError, ValueError, KeyError):
+            continue
+        out.append(s)
+    return out
+
+
+def sandboxes():
+    """bwrap の子のうちマウント名前空間が bwrap と異なるものを、名前空間ごとに1つ返す"""
+    procs = {}
+    for pid in pids():
+        try:
+            if os.stat(f"/proc/{pid}").st_uid != os.getuid():
+                continue
+            with open(f"/proc/{pid}/comm") as f:
+                procs[pid] = (f.read().strip(), int(proc_stat(pid)[1]))
+        except (OSError, IndexError, ValueError):
+            pass
+    out = {}
+    for pid, (_, ppid) in procs.items():
+        if procs.get(ppid, ("",))[0] != "bwrap":
+            continue
+        try:
+            ns = mnt_ns(pid)
+            try:
+                parent_ns = mnt_ns(ppid)
+            except OSError:  # サンドボックス内からは外側の bwrap の名前空間を読めない
+                parent_ns = None
+            if ns != parent_ns and ns not in out:
+                out[ns] = {"pid": pid, "monitor": ppid, "argv": cmdline(ppid)}
+        except OSError:
+            pass
+    return out
+
+
+def resolve_target(spec):
+    if spec.isdigit() and os.path.exists(f"/proc/{spec}"):
+        pid = int(spec)
+        for sb in sandboxes().values():
+            if sb["monitor"] == pid:
+                return sb["pid"]
+        return pid
+    found = [s for s in sessions()
+             if s.get("sessionId", "").startswith(spec) or s.get("name") == spec]
+    if not found:
+        fail(f"対象が見つかりません: {spec}")
+    if len(found) > 1:
+        fail(f"対象が複数あります: {spec}: " + " ".join(str(s["pid"]) for s in found))
+    return found[0]["pid"]
+
+
+def read_mounts(pid="self"):
+    mounts = []
+    with open(f"/proc/{pid}/mountinfo") as f:
+        for line in f:
+            left, right = line.rstrip("\n").split(" - ", 1)
+            a = left.split(" ")
+            point = a[4].encode().decode("unicode_escape").encode("latin-1").decode(errors="replace")
+            mounts.append({"id": a[0], "point": point, "opts": a[5].split(","),
+                           "fstype": right.split(" ")[0]})
+    return mounts
+
+
+def under(path, point):
+    return point == "/" or path == point or path.startswith(point + "/")
+
+
+def covering(mounts, path):
+    best = None
+    for m in mounts:  # 同じマウントポイントなら後のものが上に載っている
+        if under(path, m["point"]) and (best is None or len(m["point"]) >= len(best["point"])):
+            best = m
+    return best
+
+
+def submounts(mounts, path):
+    return sorted({m["point"] for m in mounts if m["point"] != path and under(m["point"], path)})
+
+
+def mode_of(mount):
+    return "ro" if "ro" in mount["opts"] else "rw"
+
+
+def write_holders(mount_id):
+    out = []
+    for pid in pids():
+        try:
+            fds = os.listdir(f"/proc/{pid}/fd")
+        except OSError:
+            continue
+        for fd in fds:
+            try:
+                with open(f"/proc/{pid}/fdinfo/{fd}") as f:
+                    info = dict(l.split(":\t", 1) for l in f.read().splitlines() if ":\t" in l)
+                if info.get("mnt_id") == mount_id and int(info.get("flags", "0"), 8) & 3:
+                    out.append((pid, os.readlink(f"/proc/{pid}/fd/{fd}")))
+            except (OSError, ValueError):
+                pass
+    return out
+
+
+def enter(pid):
+    if mnt_ns(pid) == mnt_ns("self"):
+        return
+    try:
+        # --disable-userns だとプロセスの userns は mntns の所有者より1段深いので、所有者を直接引く
+        mnt = os.open(f"/proc/{pid}/ns/mnt", os.O_RDONLY)
+        owner = fcntl.ioctl(mnt, NS_GET_USERNS)
+        syscall_check(libc.setns(owner, CLONE_NEWUSER), "setns(user)")
+        syscall_check(libc.setns(mnt, CLONE_NEWNS), "setns(mnt)")
+    except PermissionError:
+        fail(f"PID {pid} の名前空間に入れません (サンドボックスの外から、同じユーザーで実行してください)")
+
+
+def remount(path, ro):
+    flags = MS_REMOUNT | MS_BIND | (MS_RDONLY if ro else 0)
+    cur = os.statvfs(path).f_flag
+    flags |= sum(ms for st, ms in KEEP_FLAGS.items() if cur & st)
+    syscall_check(libc.mount(None, path.encode(), None, flags, None), f"remount {path}")
+
+
+def bind(path):
+    p = path.encode()
+    syscall_check(libc.mount(p, p, None, MS_BIND | MS_REC, None), f"bind {path}")
+
+
+def set_mode(raw, ro, force):
+    path = os.path.realpath(raw)
+    os.stat(path)
+    mounts = read_mounts()
+    cur = covering(mounts, path)
+    want = "ro" if ro else "rw"
+    if mode_of(cur) == want:
+        print(f"{want}  {path} (変更なし)")
+        return True
+
+    added = cur["point"] != path
+    if added:
+        bind(path)
+    try:
+        remount(path, ro)
+    except OSError as e:
+        if e.errno == 16 and force:  # EBUSY: 書込み中のマウントの上に新しいマウントを重ねる
+            bind(path)
+            remount(path, ro)
+            added = True
+        elif e.errno == 16:
+            print(f"ro-ctl: {path}: 書込み中のプロセスがいるため ro にできません (-f で新規 open のみ禁止)",
+                  file=sys.stderr)
+            for pid, target in write_holders(cur["id"]):
+                print(f"  {pid}  {target}", file=sys.stderr)
+            return False
+        elif e.errno == 1 and not ro:
+            print(f"ro-ctl: {path}: rw にできません (外側で ro のマウントはロックされています)", file=sys.stderr)
+            return False
+        else:
+            raise
+
+    print(f"{want}  {path}")
+    if added:
+        print("  bind mount を新設: 既に中を cwd にしているプロセスは cd し直すまで相対パスに反映されません")
+    subs = submounts(mounts, path)
+    if subs:
+        print("  配下のマウントは変更していません: " + " ".join(subs))
+    return True
+
+
+def cmd_list(show_all):
+    by_ns = {}
+    for s in sessions():
+        try:
+            by_ns.setdefault(mnt_ns(s["pid"]), []).append(s)
+        except OSError:
+            pass
+    print(f"{'PID':>7}  {'SESSION':8}  {'NAME':24}  CWD / COMMAND")
+    for ns, sb in sandboxes().items():
+        argv = sb["argv"]
+        if "--args" in argv and not show_all:
+            continue
+        found = by_ns.get(ns)
+        if found:
+            for s in found:
+                print(f"{s['pid']:>7}  {s.get('sessionId', '')[:8]:8}  {s.get('name', ''):24}  {s.get('cwd', '')}")
+        else:
+            cmd = " ".join(argv[argv.index("--") + 1:]) if "--" in argv else " ".join(argv[1:])
+            print(f"{sb['pid']:>7}  {'-':8}  {'-':24}  {cmd[:80]}")
+
+
+def cmd_show(pid, show_all):
+    for m in read_mounts(pid):
+        if show_all:
+            print(f"{mode_of(m)}  {m['point']}  ({m['fstype']})")
+        elif mode_of(m) == "rw" and not m["point"].startswith(PSEUDO):
+            print(f"rw  {m['point']}")
+
+
+def cmd_check(paths):
+    mounts = read_mounts()
+    for raw in paths:
+        path = os.path.realpath(raw)
+        if not os.path.exists(path):
+            print(f"--  {path} (存在しません)")
+            continue
+        cur = covering(mounts, path)
+        print(f"{mode_of(cur)}  {path} (マウント: {cur['point']})")
+        for pid, target in write_holders(cur["id"]):
+            print(f"  書込み中: {pid}  {target}")
+        for p in submounts(mounts, path):
+            print(f"  配下のマウント: {mode_of(covering(mounts, p))}  {p}")
+
+
+def main():
+    args = sys.argv[1:]
+    flags = {a for a in args if a in ("-a", "-f")}
+    args = [a for a in args if a not in flags]
+    cmd = args[0] if args else None
+
+    if cmd == "list" and len(args) == 1:
+        cmd_list("-a" in flags)
+    elif cmd == "show" and len(args) == 2:
+        cmd_show(resolve_target(args[1]), "-a" in flags)
+    elif cmd in ("check", "rw", "ro") and len(args) >= 3:
+        pid = resolve_target(args[1])
+        paths = [os.path.abspath(p) for p in args[2:]]
+        enter(pid)
+        if cmd == "check":
+            cmd_check(paths)
+        else:
+            results = [set_mode(p, cmd == "ro", "-f" in flags) for p in paths]
+            sys.exit(0 if all(results) else 1)
+    else:
+        sys.stderr.write(USAGE)
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except OSError as e:
+        if e.errno == 1:
+            fail(f"{e.filename}: 権限がありません (サンドボックスの外から実行してください)")
+        fail(f"{e.filename}: {e.strerror}")

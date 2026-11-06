@@ -9,6 +9,7 @@ backups/
 backups.yaml
 
 installed
+.host
 
 ## Specific to RubyMotion (use of CocoaPods):
 #

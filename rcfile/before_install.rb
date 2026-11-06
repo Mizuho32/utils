@@ -6,6 +6,7 @@ require 'open-uri'
 
 require_relative '../lib/util'
 require_relative '../lib/tools'
+require_relative '../lib/host'
 
 unless File.exist?(`which vim`.chomp) then
   $stderr.puts <<-"WARN"
@@ -40,7 +41,7 @@ Dir::mkdir(rcfile_path+"fish/completions/") unless File.exist?(rcfile_path+"fish
 version = `fish --version`[/(\d\.\d\.\d)/, 1]
 base = "https://raw.githubusercontent.com/fish-shell/fish-shell/#{version}/share/completions/"
 
-loc = YAML.load_file(rcfile_path + "loc.yaml")
+loc = Host.loc(rcfile_path)
 loc[:type][:sym]
   .map{|file, sym| file.match /fish\/completions\/(?<filename>[^\.]+\.fish)/}
   .compact
@@ -62,6 +63,10 @@ puts "tmux key if #{key}"
 # Clone theme-bobthefish
 system('git clone https://github.com/oh-my-fish/theme-bobthefish fish/theme-bobthefish') unless File.exist?(rcfile_path+"fish/theme-bobthefish/")
 
+
+# per-host parts
+host_dir    = Host.dir(rcfile_path)
+host_common = (host_dir / "common.local").then{ _1.exist? ? _1.read.strip : "" }
 
 # rcfile generaion
 {

@@ -9,3 +9,13 @@ $ ./lib/install rcfile
 ----
 $ ./lib/uninstall rcfile
 ----
+
+== Per-host settings
+
+`hosts/<hostname>/<component>/` holds what differs per host. `<component>/` is the shared part.
+For machines sharing the same hostname, write a name to `.host` (not tracked) at the repository root; it is used instead of the hostname.
+
+* `vars.yaml`: values for the templates (e.g. `prefix`, `shell`, `resurrect` of tmux)
+* `local.conf` etc.: settings read after the shared config, for formats with an include (e.g. `source-file` of tmux)
+* `loc.yaml`: merged over the shared `loc.yaml` (`~` removes an entry)
+* same name as a source in `loc.yaml`: installed instead of the shared file
