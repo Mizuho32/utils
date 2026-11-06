@@ -23,6 +23,8 @@
 # A listed mount whose mount point is under another one's is its child, whichever
 # section it is in. mount/umount of a parent also handle its children, and a parent
 # gets allow_other because fusermount3 (root) can't reach the child's mount point otherwise.
+# A child also gets, after its own branches, the same path in each of its parent's branches,
+# so what the parent has there stays visible. List such a path yourself to set its priority.
 
 set -u
 
@@ -66,6 +68,8 @@ mount and umount also handle the listed mounts under NAME.
     - SRC
   DEST, SRC: /... is absolute, anything else is relative to \$HOME.
   A DEST under another mount point is its child (mounted after, unmounted before it).
+  A child also merges what its parent has at that path, after its own SRCs.
+  List that path as a SRC to give it a higher priority.
 
 Setup on Ubuntu/Debian (mergerfs fails with "Operation not permitted" without this):
   # mergerfs-fusermount is not setuid; statoverride keeps it across package upgrades
@@ -184,18 +188,51 @@ fstype() {
   findmnt -no FSTYPE --mountpoint "$1" 2>/dev/null | head -n1
 }
 
+# branches listed for NAME, highest priority first, one per line
+own_branches() {
+  local src srcs=()
+
+  if is_custom "$1"; then
+    IFS=$'\t' read -ra srcs <<< "${CUSTOM_SRCS[$1]}"
+    for src in "${srcs[@]}"; do
+      custom_path "$src"
+    done
+  else
+    printf '%s\n' "$SRC/$1" "$CACHE/$1"
+  fi
+}
+
+# what NAME's nearest listed parent has at NAME's mount point: existing dirs in its branches
+inherited_branches() {
+  local trg i parent= parent_name= branch
+  trg=$(target_of "$1")
+  for i in "${!LISTED_TARGETS[@]}"; do
+    case $trg in
+      "${LISTED_TARGETS[i]}"/*)
+        if [ "${#LISTED_TARGETS[i]}" -gt "${#parent}" ]; then
+          parent=${LISTED_TARGETS[i]}
+          parent_name=${LISTED_NAMES[i]}
+        fi
+        ;;
+    esac
+  done
+  [ -n "$parent" ] || return 0
+  { own_branches "$parent_name"; inherited_branches "$parent_name"; } | while IFS= read -r branch; do
+    if [ -d "$branch/${trg#"$parent"/}" ]; then
+      printf '%s\n' "$branch/${trg#"$parent"/}"
+    fi
+  done
+}
+
 do_mount() {
-  local name=$1 src srcs=()
+  local name=$1 srcs=()
 
   if is_custom "$name"; then
-    IFS=$'\t' read -ra srcs <<< "${CUSTOM_SRCS[$name]}"
+    mapfile -t srcs < <(own_branches "$name")
     if [ "${#srcs[@]}" -eq 0 ]; then
       err "$name: no SRC listed"
       return
     fi
-    for src in "${!srcs[@]}"; do
-      srcs[src]=$(custom_path "${srcs[src]}")
-    done
     mount_branches "$name" "$(custom_path "$name")" "${srcs[@]}"
   elif ! [ -d "$SRC/$name" ] && ! list_names | grep -qxF -- "$name"; then
     # would be created under $SRC, $TRG and $CACHE as a new project
@@ -207,7 +244,7 @@ do_mount() {
 
 # mount branches SRC... (highest priority first) on TRG
 mount_branches() {
-  local name=$1 trg=$2 path nas branches listed
+  local name=$1 trg=$2 path nas branches listed child= merged=()
   local opts="category.create=epff,fsname=mount-code:$name"
   shift 2
 
@@ -230,6 +267,7 @@ mount_branches() {
             return
             ;;
         esac
+        child=1
         ;;
       *)
         case $listed in
@@ -238,6 +276,10 @@ mount_branches() {
         ;;
     esac
   done
+  if [ -n "$child" ]; then
+    mapfile -t merged < <({ printf '%s\n' "$@"; inherited_branches "$name"; } | awk '!seen[$0]++')
+    set -- "${merged[@]}"
+  fi
   nas=$(realpath -ms -- "$NAS")
   for path in "$@"; do
     # mergerfs option / branch syntax
@@ -270,7 +312,8 @@ mount_branches() {
         ;;
     esac
   done
-  if [ -d "$trg" ] && [ -n "$(ls -A "$trg")" ]; then
+  # a child's mount point only shows its parent's branches, which are merged above
+  if [ -z "$child" ] && [ -d "$trg" ] && [ -n "$(ls -A "$trg")" ]; then
     err "$name: $trg is not empty"
     return
   fi
@@ -282,7 +325,14 @@ mount_branches() {
   done
 
   branches=$(IFS=:; echo "$*")
-  if mergerfs -o "$opts" "$branches" "$trg"; then
+  # fuse2-based mergerfs refuses a non-empty mount point without nonempty,
+  # which is not in its --help and may be unknown to other versions
+  if [ -n "$child" ] && [ -n "$(ls -A "$trg")" ]; then
+    mergerfs -o "$opts" "$branches" "$trg" 2>/dev/null || mergerfs -o "$opts,nonempty" "$branches" "$trg"
+  else
+    mergerfs -o "$opts" "$branches" "$trg"
+  fi
+  if [ "$?" -eq 0 ]; then
     echo "$name: mounted"
   else
     err "$name: mergerfs failed"
