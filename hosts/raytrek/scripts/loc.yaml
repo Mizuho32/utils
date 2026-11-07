@@ -1,0 +1,6 @@
+:type:
+  :sym:
+    :ollama/start-ollama.sh:  :"bin/start-ollama"
+    :ffmpeg_nv:               :"bin/ffmpeg_nv"
+    :ffmpeg_vaapi:            :"bin/ffmpeg_va"
+    :docker-user:             :"bin/docker-user"
