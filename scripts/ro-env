@@ -9,6 +9,7 @@ bwrap=
 keep_env=
 isolate=
 net=
+caps=
 
 # "--" までをReadWritePaths、それ以降をコマンド
 # --bwrap: systemd-run の代わりに bwrap で実行 (呼び出し元の子プロセスのまま動く)
@@ -20,6 +21,9 @@ net=
 # --tmpfs a,b: (--bwrap 時のみ) 指定パスを書込み可能な空の tmpfs にする (終了で消える)
 # --isolate: (--bwrap 時のみ) PID/IPC/UTS/cgroup/ネットワークを分離し、/dev を専用のものにする
 # --net: (--isolate 時のみ) ネットワークの分離だけ解除する
+# --caps A,B: (--isolate 時のみ、要 root) ユーザー名前空間を使わず本物の root で動かし、指定の capability だけ残す
+#   指定できるのは CAP_CHOWN, CAP_DAC_OVERRIDE, CAP_FOWNER。実際の capability が一致しなければコマンドを実行しない
+#   /proc は読み取り専用になる (/proc/sys 経由で root の権限を取られないように)
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --)
@@ -58,6 +62,10 @@ while [[ $# -gt 0 ]]; do
       net=1
       shift
       ;;
+    --caps)
+      caps=$2
+      shift 2
+      ;;
     *)
       rw+=("$1")
       shift
@@ -75,8 +83,8 @@ if [[ ( ${#ro[@]} -gt 0 || ${#tmpfs[@]} -gt 0 || -n $isolate ) && -z $bwrap ]]; 
   exit 2
 fi
 
-if [[ -n $net && -z $isolate ]]; then
-  echo "ro-env: --net requires --isolate" >&2
+if [[ ( -n $net || -n $caps ) && -z $isolate ]]; then
+  echo "ro-env: --net and --caps require --isolate" >&2
   exit 2
 fi
 
@@ -138,8 +146,43 @@ if [[ -n $bwrap ]]; then
   unshare=()
   if [[ -n $isolate ]]; then
     dev=("--dev" "/dev")
-    unshare=("--unshare-all")
-    [[ -n $net ]] && unshare+=("--share-net")
+    unshare=("--unshare-ipc" "--unshare-pid" "--unshare-uts" "--unshare-cgroup-try")
+    [[ -z $net ]] && unshare+=("--unshare-net")
+  fi
+
+  userns=("--unshare-user" "--disable-userns")
+  if [[ -n $caps ]]; then
+    # bwrap の --cap-add は root だと権限を絞らないことがあるので、全権限で入って setpriv で落とす
+    userns=("--cap-add" "ALL")
+    remount+=("--remount-ro" "/proc")
+    mask=0
+    keep=-all
+    IFS=, read -ra cap_list <<< "$caps"
+    for c in "${cap_list[@]}"; do
+      case $c in
+        CAP_CHOWN) bit=0 ;;
+        CAP_DAC_OVERRIDE) bit=1 ;;
+        CAP_FOWNER) bit=3 ;;
+        *)
+          echo "ro-env: unsupported capability: $c" >&2
+          exit 2
+          ;;
+      esac
+      mask=$((mask | 1 << bit))
+      name=${c#CAP_}
+      keep+=",+${name,,}"
+    done
+    # uid 0 は exec で bounding set まで権限が戻るので、それ以外に権限が残っていないことも確認する
+    guard='want=$1; shift
+while read -r k v; do
+  case $k in
+    CapPrm:|CapEff:|CapBnd:) [[ $v == "$want" ]] ;;
+    CapInh:|CapAmb:) [[ $v == 0000000000000000 ]] ;;
+    *) continue ;;
+  esac || { echo "ro-env: capability check failed: $k $v" >&2; exit 126; }
+done < /proc/self/status
+exec "$@"'
+    cmd=(/usr/bin/setpriv "--bounding-set=$keep" --inh-caps=-all -- /usr/bin/bash -c "$guard" ro-env "$(printf '%016x' "$mask")" "${cmd[@]}")
   fi
 
   # ProtectSystem=strict + BindReadOnlyPaths=$HOME 相当: / 全体を ro、/dev /proc は使えるように
@@ -147,7 +190,7 @@ if [[ -n $bwrap ]]; then
     --ro-bind / / \
     "${dev[@]}" \
     --proc /proc \
-    --unshare-user --disable-userns \
+    "${userns[@]}" \
     "${unshare[@]}" \
     "${args[@]}" \
     "${remount[@]}" \
