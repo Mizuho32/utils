@@ -115,7 +115,6 @@ end
 
 # abbr pay 'yay --pacman powerpill'
 abbr suspend 'sudo systemctl suspend'
-abbr suspend-safe 'memfree && sudo systemctl suspend'
 abbr amd-smi 'sys-env (which amd-smi)'
 abbr mv 'mv -i'
 abbr cp 'cp -i'
@@ -135,7 +134,6 @@ abbr gr 'git remote -v'
 abbr gs 'git status'
 abbr gl 'git log'
 # abbr vivaldi 'systemd-run --user --scope -p CPUQuota=200% -p MemoryMax=4G flatpak run com.vivaldi.Vivaldi --password-store=kwallet6 > /dev/null 2>&1 &'
-abbr xpu-smi-loop "while true; echo ---; xpu-smi stats -d 0 | grep -E 'GPU.+(Used|Power|Freq)|(te\sEn)'; sleep 2; end"
 abbr xo 'xdg-open'
 abbr fu 'flatpak update'
 abbr fr 'flatpak run'
