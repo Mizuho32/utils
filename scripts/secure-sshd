@@ -19,10 +19,19 @@ Usage: secure-sshd --allow-ip IP[,IP...] [オプション] PATH...
   --listen ADDR  待ち受けアドレス (既定: 許可 IP へ向かう経路の送信元アドレス)
   --port N       待ち受けポート (既定: 空きポートをランダムに選ぶ)
   --name NAME    クライアント側の保存先 /tmp/agent-ssh-NAME-* の名前 (既定: 最初の PATH のディレクトリ名)
+  --danger       root で起動し、PATH には所有者を問わず書込み可、それ以外は読み取り専用にする (下記)
+  --log FILE     --danger の接続ログ (既定: /var/log/secure-sshd.log)
 
 サンドボックス内:
-  /home /run /mnt /media は隠す。/tmp /var/tmp $HOME は接続ごとの空の tmpfs (切断で消える)。
+  /home /run /mnt /media /srv /export /sharedfolders は隠す。/tmp /var/tmp $HOME は接続ごとの空の tmpfs (切断で消える)。
   ~/bin や mise など $HOME 配下のツールは --ro で指定しないと使えない。
+
+--danger:
+  root の sshd から本物の uid 0 で入る。残す capability は DAC_OVERRIDE, CHOWN, FOWNER のみ。
+  / は読み取り専用で、機密パス・/run・見つかった UNIX ソケットは隠す。--allow-ip は IP 1つ、
+  PATH は /srv /export /sharedfolders /mnt /media /home /tmp の配下のみ、--net は不可、期限の既定は 1h。
+  隠すパスは一覧方式なので、NAS のデータを含め、他は全部読まれる前提で使うこと。
+  PATH に置かれたファイルを root や他ユーザーが実行すると権限を取られるので、実行する場所は渡さないこと。
 EOF
   exit 2
 }
@@ -36,7 +45,9 @@ allow_ip=
 rw=()
 ro=()
 net=
-expire=8h
+expire=
+danger=
+log=/var/log/secure-sshd.log
 listen=
 port=
 name=
@@ -50,12 +61,30 @@ while [[ $# -gt 0 ]]; do
     --listen) listen=$2; shift 2 ;;
     --port) port=$2; shift 2 ;;
     --name) name=$2; shift 2 ;;
+    --danger) danger=1; shift ;;
+    --log) log=$2; shift 2 ;;
     --) shift; rw+=("$@"); break ;;
     -*) usage ;;
     *) rw+=("$1"); shift ;;
   esac
 done
 [[ -n $allow_ip && ${#rw[@]} -gt 0 ]] || usage
+
+USER=${USER:-$(id -un)}
+if [[ -n $danger ]]; then
+  [[ $(id -u) -eq 0 ]] || die "--danger は root で実行してください"
+  [[ -z $net ]] || die "--danger と --net は併用できません"
+  [[ $allow_ip =~ [,/] ]] && die "--danger の --allow-ip は IP 1つだけです: $allow_ip"
+  [[ -t 0 ]] || die "--danger は端末での確認が必要です"
+  # sudo の HOME や XDG_RUNTIME_DIR を引き継ぐと sshd の所有者チェックに通らず、隠す対象もずれる
+  [[ -n ${SUDO_USER:-} ]] && HOME=/root
+  unset XDG_RUNTIME_DIR
+  expire=${expire:-1h}
+else
+  # root だと本物の uid 0 のまま root 所有のファイルを読めてしまう
+  [[ $(id -u) -eq 0 ]] && die "root では起動できません (root が必要なら --danger)"
+  expire=${expire:-8h}
+fi
 
 IFS=, read -ra ips <<< "$allow_ip"
 for ip in "${ips[@]}"; do
@@ -73,6 +102,20 @@ check_path() {
 }
 for i in "${!rw[@]}"; do rw[i]=$(check_path "${rw[i]}") || exit 1; done
 for i in "${!ro[@]}"; do ro[i]=$(check_path "${ro[i]}") || exit 1; done
+
+if [[ -n $danger ]]; then
+  for p in "${rw[@]}"; do
+    [[ $p =~ ^/(srv|export|sharedfolders|mnt|media|home|tmp)/. ]] || die "--danger で書込みを許可できない場所です: $p"
+  done
+  cat >&2 <<EOF
+*** --danger: エージェントに root のファイル権限を渡します ***
+  書込み可: ${rw[*]} (所有者を問わず)
+  読取可:   隠した機密パス以外の全部 (NAS のデータを含む)
+  許可 IP:  $allow_ip
+EOF
+  read -r -p "続行するには danger と入力: " answer
+  [[ $answer == danger ]] || die "中止しました"
+fi
 
 [[ $expire =~ ^([0-9]+)([smhd])$ ]] || die "不正な期限: $expire (例: 30m, 8h)"
 case ${BASH_REMATCH[2]} in
@@ -101,7 +144,10 @@ sshd_bin=$(command -v sshd) || die "sshd が見つかりません"
 
 umask 077
 # /run と /home はサンドボックスから隠れるので、この中身はエージェントから読めない
-dir=$(mktemp -d -p "${XDG_RUNTIME_DIR:-$HOME/.cache}" secure-sshd.XXXXXX) || exit 1
+# su などで XDG_RUNTIME_DIR がない場合は ~/.cache を使う
+parent=${XDG_RUNTIME_DIR:-$HOME/.cache}
+mkdir -p "$parent" || exit 1
+dir=$(mktemp -d -p "$parent" secure-sshd.XXXXXX) || exit 1
 
 descendants() {
   local c
@@ -132,11 +178,26 @@ ssh-keygen -q -t ed25519 -N '' -C "secure-sshd-$name" -f "$dir/client_key" || ex
 
 echo "from=\"$allow_ip\",expiry-time=\"$expire_at\",restrict,pty $(cat "$dir/client_key.pub")" > "$dir/authorized_keys"
 
-ro_env_args=(
-  --bwrap --keep-env --isolate
-  --noaccess /home,/run,/mnt,/media
-  --tmpfs "/tmp,/var/tmp,$HOME"
-)
+if [[ -n $danger ]]; then
+  ro_env_args=(
+    --bwrap --keep-env --isolate
+    --caps CAP_DAC_OVERRIDE,CAP_CHOWN,CAP_FOWNER
+    --noaccess /run,/etc/shadow,/etc/shadow-,/etc/gshadow,/etc/gshadow-,/etc/ssh,/etc/ssl/private
+    --noaccess /etc/openmediavault,/etc/samba,/var/lib/samba,/etc/wireguard,/etc/NetworkManager/system-connections
+    --noaccess /var/backups,/var/lib/docker,/var/lib/containerd
+    --tmpfs "/tmp,/var/tmp,$HOME"
+  )
+  # DAC_OVERRIDE があると docker.sock のような root 用ソケットに接続できてしまう
+  while IFS= read -r -d '' p; do
+    [[ $p == *,* ]] || ro_env_args+=(--noaccess "$p")
+  done < <(find /var /etc /opt -xdev -type s -print0 2>/dev/null)
+else
+  ro_env_args=(
+    --bwrap --keep-env --isolate
+    --noaccess /home,/run,/mnt,/media,/srv,/export,/sharedfolders
+    --tmpfs "/tmp,/var/tmp,$HOME"
+  )
+fi
 [[ -n $net ]] && ro_env_args+=(--net --ro /run/systemd/resolve)
 for p in "${ro[@]}"; do
   ro_env_args+=(--ro "$p")
@@ -146,6 +207,7 @@ ro_env_args+=("${rw[@]}")
 {
   echo '#!/usr/bin/env bash'
   printf 'export PATH=%q SHELL=/usr/bin/bash\n' "$PATH"
+  [[ -n $danger ]] && printf 'printf "%%s %%s %%q\\n" "$(date -Is)" "$SSH_CONNECTION" "${SSH_ORIGINAL_COMMAND:-<shell>}" >> %q\n' "$log"
   printf 'cd %q || exit 1\n' "${rw[0]}"
   printf 'cmd=(%q' "$self_dir/ro-env"
   printf ' %q' "${ro_env_args[@]}"
@@ -175,7 +237,7 @@ AuthenticationMethods publickey
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 UsePAM no
-PermitRootLogin no
+PermitRootLogin $([[ -n $danger ]] && echo prohibit-password || echo no)
 DisableForwarding yes
 PermitTunnel no
 PermitUserRC no
@@ -219,6 +281,7 @@ sshd_pid=$!
 sleep 0.3
 kill -0 "$sshd_pid" 2>/dev/null || die "sshd の起動に失敗しました"
 
+[[ -n $danger ]] && echo "*** --danger モード: 接続ログ $log ***"
 cat <<EOF
 待ち受け: $listen:$port  許可: $allow_ip  期限: $(date -d "+$expire_sec seconds" '+%F %T')  ネットワーク: $([[ -n $net ]] && echo 許可 || echo 遮断)
 書込み可: ${rw[*]}
