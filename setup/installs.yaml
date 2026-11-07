@@ -1,9 +1,14 @@
 :common:
-# - git
+  - fish
+# - zsh
+  - git
+  - neovim
+  - tmux
+  - tig
   - git-branch-status
   - tig-colors-neonwolf
 # - htop
-  - kitty
+# - kitty
   - mergerfs
 # clean
 # - fish
@@ -27,32 +32,32 @@
 # - netrc
 # - lastpass-cli
 # - gitlastpass
-# - opera
+  - htop
 # - x11vnc
-:flatpak install:
-  - vivaldi
-  - floorp
-  - audacity
-  - obsidian
-  - zoom
-  - viber
-  - discord
-  - vlc
-  - remmina
-  - mousepad
-  - evince
-  - vscode
-  - org.gtk.Gtk3theme.Breeze-Dark
-  - Adwaita-dark
-  - gimp
-  - org.sqlitebrowser.sqlitebrowser
+  - curl
+# - krdc
+# - mousepad
+# - opera
+# - gimp
+# - obsidian
+# - code
+  - lolcat
+  - sl
+# - git-delta
+# - x11vnc
+  - intel-smi
 :ubuntu:
-  - &be build-essential
-  - vivaldi-repo
-  - vivaldi-stable
+  - nfs-client
+  - bat
+  - mosh
+  - watchman
+  - smartmontools
+# - &be build-essential
+# - vivaldi-repo
+# - vivaldi-stable
 :debian:
-  - *be
-  - less
+# - *be
+# - less
 :archlinux:
 # - blueman
   - yay
@@ -135,6 +140,8 @@
   - dev-vcs/tig
   - app-text/tree
   - app-misc/jq
+  - sys-apps/net-tools
+  - app-misc/sl
 :cargo install:
   - bat
   - eza
@@ -148,8 +155,10 @@
   - tmuxinator
 :npx:
   - md-review
-:kde:
-  - yakuake
+:go install:
+  - github.com/charmbracelet/glow/v2@latest
+    #:kde:
+    #  - yakuake
 :mise use -g:
   - github:shibadogcap/dpgk
   - herdr

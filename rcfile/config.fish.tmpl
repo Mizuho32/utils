@@ -50,7 +50,8 @@ CUSTOM
 ), cstm: (<<-"CUSTOM"
 
 # completions
-for name in yay #bat fd yt-dlp
+for name in docker
+  #source /opt/gentoo_prefix/x86_64/usr/share/fish/vendor_completions.d/$name.fish
   source /usr/share/fish/vendor_completions.d/$name.fish
 end
 
@@ -112,7 +113,10 @@ end
 # pyenv init - | source
 # pyenv virtualenv-init - | source
 
-abbr pay 'yay --pacman powerpill'
+# abbr pay 'yay --pacman powerpill'
+abbr suspend 'sudo systemctl suspend'
+abbr suspend-safe 'memfree && sudo systemctl suspend'
+abbr amd-smi 'sys-env (which amd-smi)'
 abbr mv 'mv -i'
 abbr cp 'cp -i'
 abbr stop 'killall -SIGSTOP'
@@ -130,15 +134,21 @@ abbr gp 'git push -u'
 abbr gr 'git remote -v'
 abbr gs 'git status'
 abbr gl 'git log'
+# abbr vivaldi 'systemd-run --user --scope -p CPUQuota=200% -p MemoryMax=4G flatpak run com.vivaldi.Vivaldi --password-store=kwallet6 > /dev/null 2>&1 &'
+abbr nvenc "sys-env ffmpeg_nv -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 -c:a copy -c:v hevc_nvenc output.mp4"
+abbr vaapi "sys-env time ffmpeg_va -vaapi_device /dev/dri/renderD128 -i input.mp4 -vf 'format=nv12,hwupload' -c:v av1_vaapi -b:v 3M -c:a opus -b:a 64k -strict -2 output.webm"
+abbr xpu-smi-loop "while true; echo ---; xpu-smi stats -d 0 | grep -E 'GPU.+(Used|Power|Freq)|(te\sEn)'; sleep 2; end"
 abbr xo 'xdg-open'
 abbr fu 'flatpak update'
 abbr fr 'flatpak run'
 abbr copilot 'ro-env $PWD /tmp $HOME/.cache $HOME/.copilot -- copilot'
 abbr claude 'claude-secure'
 abbr swapuse 'swapon --show; echo; zramctl; echo; awk \\'/^Pid:/{p=$2} /^VmSwap:/{if($2>0) print $2*1024, p}\\' /proc/*/status 2>/dev/null | sort -nr | head -n10 | while read s p; printf \\'%6s  \\' (numfmt --to=iec $s); ps -o pid=,user=,args= -p $p; end'
+abbr suspend-qdbus 'qdbus6 org.kde.Solid.PowerManagement /org/freedesktop/PowerManagement CanSuspend && qdbus6 org.kde.Solid.PowerManagement /org/freedesktop/PowerManagement Suspend'
 
 # per-host
 test -f #{host_dir}/config.local.fish; and source #{host_dir}/config.local.fish
+
 CUSTOM
 )
 %>

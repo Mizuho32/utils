@@ -9,10 +9,16 @@ export RUBYLIB="$HOME/lib/ruby:$RUBYLIB"
 export NAS=$HOME/media/nas
 export PRJ=$HOME/media/nas/prjs
 export Reality=$NAS/Music/VtuberSongs/Reality
+export CHEAT_CMD_PATH="$NAS/Documents/obsidian/Projects/LinuxCommandsCheatSheet/Cheat Sheet.md"
+#export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+export RUSTUP_HOME=$HOME/media/data/rustup
+export CARGO_HOME=$HOME/media/data/cargo
 export OBSIDIAN="$NAS/Documents/obsidian"
 export CHEAT_CMD_PATH="$OBSIDIAN/Projects/LinuxCommandsCheatSheet/Cheat Sheet.md"
 export RUSTUP_HOME=$HOME/media/data/rustup
+export EDITOR=vim
 export CLAUDE_CONFIG_DIR=$HOME/.config/claude
+
 ## for pyenv
 export CONFIGURE_OPTS="--enable-shared" 
 
@@ -20,6 +26,9 @@ export CONFIGURE_OPTS="--enable-shared"
 <%=
 export <<-"PATH"
 $HOME/bin
+$HOME/media/data/cargo/bin
+/usr/local/cuda/bin
+/opt/rocm/bin
 $HOME/.cargo/bin
 PATH
 %>
@@ -32,7 +41,7 @@ alias sl="sl -e"
 alias LS="sl"
 alias xcopy="ruby -e 'print gets.strip' | xsel --clipboard --input"
 alias xpaste='xsel --clipboard --output'
-alias ls="eza -gF"
+alias ls="eza -F"
 
 <%= host_common %>
 
@@ -47,15 +56,15 @@ fi
 # Scp block avoid
 if [ -t 0 ]; then
 
-# Set DISPLAY ENV?
-if [ "${SSH_CLIENT}" != "" ]; then
-  echo ""
-  read input\?'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
-
-  if [ "${input}" != "n" -a "${input}" != "" ]; then
-    export DISPLAY="localhost:${input}.0"
-  fi
-fi
+# # Set DISPLAY ENV?
+# if [ "${SSH_CLIENT}" != "" ]; then
+#   echo ""
+#   read input\?'Set $DISPLAY To localhost:N.0 ? [0,1... / n] >>'
+# 
+#   if [ "${input}" != "n" -a "${input}" != "" ]; then
+#     export DISPLAY="localhost:${input}.0"
+#   fi
+# fi
 
 # Tmux select
 tmux_ls=$(tmux ls)

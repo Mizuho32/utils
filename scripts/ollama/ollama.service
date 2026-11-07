@@ -1,0 +1,15 @@
+[Unit]
+Description=Ollama Service
+#After=network-online.target
+
+[Service]
+ExecStart=bash /home/mizuho/bin/start-ollama
+#User=ollama
+#Group=ollama
+Restart=always
+RestartSec=3
+Environment="PATH=$PATH"
+
+[Install]
+WantedBy=default.target
+#WantedBy=multi-user.target
